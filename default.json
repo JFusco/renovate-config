@@ -1,0 +1,22 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Pin Courier: keep first-party packages current in every repository that extends this preset."
+  ],
+  "enabledManagers": ["npm"],
+  "semanticCommits": "enabled",
+  "commitMessageAction": "bump",
+  "commitMessageTopic": "{{depName}}",
+  "packageRules": [
+    {
+      "description": "Manage only the first-party packages enabled below; every other dependency stays manual.",
+      "matchPackageNames": ["*"],
+      "enabled": false
+    },
+    {
+      "description": "First-party packages published from JFusco repositories.",
+      "matchPackageNames": ["cms-field-vocabulary", "@verndale/ui-design-brain"],
+      "enabled": true
+    }
+  ]
+}

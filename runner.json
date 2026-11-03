@@ -1,0 +1,6 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-global-schema.json",
+  "autodiscover": true,
+  "onboarding": false,
+  "requireConfig": "required"
+}
