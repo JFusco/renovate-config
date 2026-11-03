@@ -76,6 +76,31 @@ adds these steps around its publish step, plus the two secrets below:
           # @semantic-release/git commits the release, so HEAD moves only when a version was published.
           if [ "$(git rev-parse HEAD)" != "$BEFORE_SHA" ]; then echo 'published=true' >> "$GITHUB_OUTPUT"; fi
 
+      - name: Wait for the release on the npm registry
+        if: steps.released.outputs.published == 'true'
+        timeout-minutes: 12
+        continue-on-error: true
+        run: |
+          # npm accepts the upload minutes before the registry serves it; Renovate reads the packument.
+          node --input-type=module <<'EOF'
+          import { readFile } from 'node:fs/promises';
+          const { name, version } = JSON.parse(await readFile('package.json', 'utf8'));
+          const url = `https://registry.npmjs.org/${name.replace('/', '%2F')}`;
+          for (let attempt = 1; attempt <= 40; attempt++) {
+            try {
+              const response = await fetch(url);
+              if (response.ok && (await response.json()).versions?.[version]) {
+                console.log(`${name}@${version} is on the registry after ${attempt} check(s).`);
+                process.exit(0);
+              }
+            } catch (error) {
+              console.log(`Registry check ${attempt} failed: ${error.message}`);
+            }
+            await new Promise((resolve) => setTimeout(resolve, 15_000));
+          }
+          console.log(`::warning::${name}@${version} is not on the registry after 10 minutes; dispatching anyway.`);
+          EOF
+
       - name: Mint Pin Courier token
         id: courier
         if: steps.released.outputs.published == 'true'
@@ -96,6 +121,10 @@ adds these steps around its publish step, plus the two secrets below:
 
 `POST /repos/{owner}/{repo}/dispatches` needs **Contents: write** on this
 repository, so the app must be installed here.
+
+npm accepts an upload a few minutes before the registry serves it, so the
+wait step holds the dispatch until the new version is visible. Without it the
+dispatched run misses the release and the update waits for the schedule.
 
 ## Pin Courier app
 
