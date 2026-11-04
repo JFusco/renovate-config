@@ -45,6 +45,35 @@ Add an account to the workflow matrix once the app is installed there.
 
 ## Opt a repository in
 
+### Full repository maintenance (opt-in)
+
+CMS Vocabulary is the first adopter of [`maintenance.json`](maintenance.json).
+Unlike the first-party-only default, this independent preset enables npm and
+GitHub Actions dependency updates. It keeps Renovate automerge disabled; the
+repository's checks and review policy still govern each update. GitHub Actions
+continues to run validation, releases, wiki generation, and vendor-source scans.
+
+```json
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>JFusco/renovate-config:maintenance"]
+}
+```
+
+Adopters should add their own scheduling, grouping, and PR-metadata rules, then
+replace their other scheduled dependency updater in the same cutover. Existing
+users of the default preset retain the first-party-only policy. Vulnerability
+PRs require GitHub vulnerability alerts to be enabled; this preset does not
+change repository security settings and never automerges a security update.
+
+Validate with the runner's pinned version before changing a preset:
+
+```sh
+npx --yes --package renovate@44.190.0 -- renovate-config-validator --strict default.json maintenance.json
+```
+
+### First-party package consumers
+
 1. Add the repository to Pin Courier's installation (app settings, then
    **Install App**, then the account's gear icon).
 2. Commit `renovate.json` at the repository root:
