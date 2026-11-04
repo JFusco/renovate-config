@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Opt-in npm and GitHub Actions maintenance; first adopter: CMS Vocabulary."
+  ],
+  "extends": ["config:recommended"],
+  "enabledManagers": ["npm", "github-actions"],
+  "automerge": false,
+  "dependencyDashboard": false,
+  "semanticCommits": "enabled",
+  "commitMessageAction": "bump",
+  "commitMessageTopic": "{{depName}}",
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "automerge": false
+  }
+}
