@@ -10,7 +10,9 @@ never merges.
 Only first-party npm packages listed in [`default.json`](default.json):
 
 - `cms-field-vocabulary`
-- `@verndale/ui-design-brain`
+- `ui-design-brain`
+- `@verndale/ui-design-brain`, the frozen pre-transfer name, until its last
+  consumer moves to `ui-design-brain`
 
 Every other dependency is disabled. Exact pins move to the new exact version;
 Renovate's npm default updates in-range versions in the lockfile only.

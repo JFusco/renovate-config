@@ -15,7 +15,7 @@
     },
     {
       "description": "First-party packages published from JFusco repositories.",
-      "matchPackageNames": ["cms-field-vocabulary", "@verndale/ui-design-brain"],
+      "matchPackageNames": ["cms-field-vocabulary", "ui-design-brain", "@verndale/ui-design-brain"],
       "enabled": true
     }
   ]
