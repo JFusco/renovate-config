@@ -116,7 +116,7 @@ adds these steps around its publish step, plus the two secrets below:
         timeout-minutes: 12
         continue-on-error: true
         run: |
-          # npm accepts the upload minutes before the registry serves it; Renovate reads the packument.
+          # npm accepts the upload minutes before the registry serves it, and the tarball can lag the packument.
           node --input-type=module <<'EOF'
           import { readFile } from 'node:fs/promises';
           const { name, version } = JSON.parse(await readFile('package.json', 'utf8'));
@@ -124,8 +124,9 @@ adds these steps around its publish step, plus the two secrets below:
           for (let attempt = 1; attempt <= 40; attempt++) {
             try {
               const response = await fetch(url);
-              if (response.ok && (await response.json()).versions?.[version]) {
-                console.log(`${name}@${version} is on the registry after ${attempt} check(s).`);
+              const tarball = response.ok && (await response.json()).versions?.[version]?.dist?.tarball;
+              if (tarball && (await fetch(tarball, { method: 'HEAD' })).ok) {
+                console.log(`${name}@${version} and its tarball are on the registry after ${attempt} check(s).`);
                 process.exit(0);
               }
             } catch (error) {
@@ -133,7 +134,7 @@ adds these steps around its publish step, plus the two secrets below:
             }
             await new Promise((resolve) => setTimeout(resolve, 15_000));
           }
-          console.log(`::warning::${name}@${version} is not on the registry after 10 minutes; dispatching anyway.`);
+          console.log(`::warning::${name}@${version} and its tarball are not on the registry after 10 minutes; dispatching anyway.`);
           EOF
 
       - name: Mint Pin Courier token
@@ -158,8 +159,9 @@ adds these steps around its publish step, plus the two secrets below:
 repository, so the app must be installed here.
 
 npm accepts an upload a few minutes before the registry serves it, so the
-wait step holds the dispatch until the new version is visible. Without it the
-dispatched run misses the release and the update waits for the schedule.
+wait step holds the dispatch until the new version and its tarball are
+visible. Without it the dispatched run can miss the release and leave the
+update to the schedule, or open an update whose tarball does not install yet.
 
 ## Pin Courier app
 
