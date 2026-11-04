@@ -7,6 +7,7 @@
   "semanticCommits": "enabled",
   "commitMessageAction": "bump",
   "commitMessageTopic": "{{depName}}",
+  "prHourlyLimit": 0,
   "packageRules": [
     {
       "description": "Manage only the first-party packages enabled below; every other dependency stays manual.",

@@ -17,6 +17,10 @@ Only first-party npm packages listed in [`default.json`](default.json):
 Every other dependency is disabled. Exact pins move to the new exact version;
 Renovate's npm default updates in-range versions in the lockfile only.
 
+`prHourlyLimit` is `0` (no limit) because each release dispatches the runner;
+Renovate's default of two pull requests per repository per hour would hold a
+later release in the same hour until the next scheduled run.
+
 Pull request titles and commits look like
 `chore(deps): bump cms-field-vocabulary to v1.3.8`, which passes Conventional
 Commits linting with a 50-character subject limit.
