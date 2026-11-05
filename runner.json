@@ -3,5 +3,5 @@
   "autodiscover": true,
   "onboarding": false,
   "requireConfig": "required",
-  "allowedCommands": ["^pnpm install --frozen-lockfile$", "^pnpm catalog:sync$"]
+  "allowedCommands": ["^pnpm install --frozen-lockfile --ignore-scripts$", "^pnpm catalog:sync$"]
 }

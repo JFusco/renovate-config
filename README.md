@@ -180,6 +180,8 @@ A consumer that commits files generated from a managed package can regenerate
 them inside the update branch, so the pull request arrives complete. Each
 command must match `allowedCommands` in [`runner.json`](runner.json), and
 `installTools` installs the package manager at the version in `constraints`.
+Install without lifecycle scripts: a `prepare` script that installs git hooks
+(husky) breaks Renovate's later checkout in the same clone.
 design-passport regenerates its `ui-design-brain` catalog this way:
 
 ```json
@@ -188,7 +190,7 @@ design-passport regenerates its `ui-design-brain` catalog this way:
   "extends": ["github>JFusco/renovate-config"],
   "constraints": { "pnpm": "10.33.0" },
   "postUpgradeTasks": {
-    "commands": ["pnpm install --frozen-lockfile", "pnpm catalog:sync"],
+    "commands": ["pnpm install --frozen-lockfile --ignore-scripts", "pnpm catalog:sync"],
     "executionMode": "branch",
     "fileFilters": ["src/generated/ui-design-brain.catalog.json"],
     "installTools": { "pnpm": {} }
