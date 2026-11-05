@@ -13,6 +13,7 @@
   "commitMessageSuffix": "[skip release]",
   "vulnerabilityAlerts": {
     "enabled": true,
-    "automerge": false
+    "automerge": false,
+    "commitMessageSuffix": "[SECURITY] [skip release]"
   }
 }
