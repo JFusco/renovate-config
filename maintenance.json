@@ -10,6 +10,7 @@
   "semanticCommits": "enabled",
   "commitMessageAction": "bump",
   "commitMessageTopic": "{{depName}}",
+  "commitMessageSuffix": "[skip release]",
   "vulnerabilityAlerts": {
     "enabled": true,
     "automerge": false
