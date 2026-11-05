@@ -79,7 +79,8 @@ this repository, and sends the `package-released` dispatch (see
 
 One job per installed account mints that account's token and runs Renovate
 over every installed repository that has a `renovate.json`. Runs never
-overlap; a dispatch that arrives mid-run waits its turn. The six-hour schedule
+overlap: one pending run is kept and a newer trigger replaces it, and every
+run scans all configured repositories. The six-hour schedule
 is the fallback when a dispatch is missed, and GitHub often starts it late.
 
 ### 3. Each repository's preset decides
@@ -87,7 +88,7 @@ is the fallback when a dispatch is missed, and GitHub often starts it late.
 | Preset | Used by | Tracks | Pull requests |
 | --- | --- | --- | --- |
 | `default.json` | brain, design-passport, migrator | `cms-field-vocabulary`, `ui-design-brain` | one per package per release, no hourly cap, never automerged by the preset |
-| `maintenance.json` | cms-field-vocabulary, ui-design-brain | their own devDependencies and GitHub Actions | Mondays, grouped minor and patch, `[skip release]` suffix, so a merge publishes nothing |
+| `maintenance.json` | cms-field-vocabulary, ui-design-brain | their own devDependencies and GitHub Actions | `[skip release]` suffix (also on security updates), so a merge publishes nothing; each adopter's `renovate.json` adds its schedule (Mondays) and minor/patch grouping |
 
 The two publishers do not depend on each other, so neither consumes the
 `default` preset.
@@ -107,7 +108,9 @@ The two publishers do not depend on each other, so neither consumes the
 - A pull request that conflicts after another merge is rebased by Renovate on
   its next run; `gh workflow run renovate.yml -R JFusco/renovate-config`
   forces one.
-- A tarball that lags the packument delays the dispatch, not the consumer.
+- A tarball that lags the packument delays the dispatch by up to about ten
+  minutes; after that the publisher warns and dispatches anyway, and the
+  scheduled run catches anything the consumer could not install yet.
 
 ### Not covered on purpose
 
