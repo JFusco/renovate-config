@@ -27,8 +27,8 @@ jobs:
       fail-fast: false
       matrix:
         # An installation token covers one account, so each account is its
-        # own run. Add verndale once its owner approves the installation.
-        owner: [JFusco]
+        # own run.
+        owner: [JFusco, verndale]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
