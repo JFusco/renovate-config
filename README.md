@@ -35,6 +35,8 @@ Pin Courier installation token per account and runs Renovate with
 - `requireConfig: required`: only repositories with a `renovate.json` are
   processed, so installing the app alone changes nothing.
 - `onboarding: false`: Renovate never opens onboarding pull requests.
+- `allowedCommands`: the only commands a repository's `postUpgradeTasks` may
+  run, as anchored patterns. Today that is design-passport's catalog sync.
 
 Triggers:
 
@@ -95,6 +97,28 @@ npx --yes --package renovate@44.190.0 -- renovate-config-validator --strict defa
    ```
 
 Consumers need no secrets.
+
+### Post-upgrade tasks
+
+A consumer that commits files generated from a managed package can regenerate
+them inside the update branch, so the pull request arrives complete. Each
+command must match `allowedCommands` in [`runner.json`](runner.json), and
+`installTools` installs the package manager at the version in `constraints`.
+design-passport regenerates its `ui-design-brain` catalog this way:
+
+```json
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>JFusco/renovate-config"],
+  "constraints": { "pnpm": "10.33.0" },
+  "postUpgradeTasks": {
+    "commands": ["pnpm install --frozen-lockfile", "pnpm catalog:sync"],
+    "executionMode": "branch",
+    "fileFilters": ["src/generated/ui-design-brain.catalog.json"],
+    "installTools": { "pnpm": {} }
+  }
+}
+```
 
 ## Notify on release
 

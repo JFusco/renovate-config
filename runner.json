@@ -2,5 +2,6 @@
   "$schema": "https://docs.renovatebot.com/renovate-global-schema.json",
   "autodiscover": true,
   "onboarding": false,
-  "requireConfig": "required"
+  "requireConfig": "required",
+  "allowedCommands": ["^pnpm install --frozen-lockfile$", "^pnpm catalog:sync$"]
 }
