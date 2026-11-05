@@ -3,7 +3,8 @@
 Shared [Renovate](https://docs.renovatebot.com/) preset and central runner for
 my repositories. Renovate runs as the **Pin Courier** GitHub App and opens one
 pull request per package when a managed package publishes a new version. It
-never merges.
+merges nothing unless a consumer opts in to Renovate automerge in its own
+`renovate.json`.
 
 ## What it manages
 
@@ -48,6 +49,81 @@ Triggers:
 
 Accounts run separately because an installation token covers one account.
 Add an account to the workflow matrix once the app is installed there.
+
+## End-to-end flow
+
+```
+ PUBLISHERS                     RUNNER                        CONSUMERS
+ cms-field-vocabulary ─┐                                   ┌─ JFusco/brain
+                       ├─ dispatch ─► renovate-config ────┼─ JFusco/design-passport
+ ui-design-brain ──────┘   (or the 6-hour schedule)       ├─ verndale/migrator
+                                                          └─ cms-field-vocabulary,
+                                                             ui-design-brain (maintenance)
+```
+
+### 1. A publisher releases
+
+`JFusco/cms-field-vocabulary` and `JFusco/ui-design-brain` release with
+semantic-release on every push to `main` (ui-design-brain after Quality
+passes, and only for substantive revisions). Every conventional commit type
+releases: `feat` is a minor, a breaking change is a major, and every other
+type is a patch. The only skips are commits carrying `[skip release]`, the
+release commit itself, and wiki-only revisions.
+
+When a version was published, the workflow waits until npm serves both the
+packument and the tarball, mints a Pin Courier token that can only write to
+this repository, and sends the `package-released` dispatch (see
+[Notify on release](#notify-on-release)).
+
+### 2. The runner runs
+
+One job per installed account mints that account's token and runs Renovate
+over every installed repository that has a `renovate.json`. Runs never
+overlap; a dispatch that arrives mid-run waits its turn. The six-hour schedule
+is the fallback when a dispatch is missed, and GitHub often starts it late.
+
+### 3. Each repository's preset decides
+
+| Preset | Used by | Tracks | Pull requests |
+| --- | --- | --- | --- |
+| `default.json` | brain, design-passport, migrator | `cms-field-vocabulary`, `ui-design-brain` | one per package per release, no hourly cap, never automerged by the preset |
+| `maintenance.json` | cms-field-vocabulary, ui-design-brain | their own devDependencies and GitHub Actions | Mondays, grouped minor and patch, `[skip release]` suffix, so a merge publishes nothing |
+
+The two publishers do not depend on each other, so neither consumes the
+`default` preset.
+
+### 4. Each consumer merges
+
+| Repository | Merge | After the pull request opens |
+| --- | --- | --- |
+| `JFusco/brain` | merge commit | Renovate automerges on its next run once checks pass (`automerge` in its `renovate.json`; no branch protection, so `platformAutomerge` is off) |
+| `JFusco/design-passport` | squash | the pull request already carries the regenerated `ui-design-brain` catalog ([Post-upgrade tasks](#post-upgrade-tasks)); a human merges |
+| `verndale/migrator` | squash | PR-body lint is skipped on `renovate/` branches; generated applications read their pins from the installed packages; a human merges |
+| `cms-field-vocabulary`, `ui-design-brain` | merge commit | commitlint trusts the installed Pin Courier App identity, not a branch prefix; Quality still runs in full; a human merges |
+
+### Self-healing
+
+- A missed dispatch is caught by the next scheduled run.
+- A pull request that conflicts after another merge is rebased by Renovate on
+  its next run; `gh workflow run renovate.yml -R JFusco/renovate-config`
+  forces one.
+- A tarball that lags the packument delays the dispatch, not the consumer.
+
+### Not covered on purpose
+
+- `verndale/ai-orchestration` has the app installed but no `renovate.json`.
+  Its `ui-design-brain` version is bound by `@verndale/accessibility-standards`
+  through that repository's own Sync Design Contracts workflow, and it still
+  uses the scoped package name.
+- The frozen `@verndale/ui-design-brain` rule stays until that migration.
+
+### Trust boundaries
+
+- The Pin Courier private key exists only as Actions secrets here and in the
+  two publishers.
+- A publisher's token can only dispatch to this repository.
+- A runner token reaches only the repositories the app is installed on.
+- Every change arrives as a pull request under the repository's own checks.
 
 ## Opt a repository in
 
