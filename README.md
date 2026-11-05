@@ -70,6 +70,11 @@ users of the default preset retain the first-party-only policy. Vulnerability
 PRs require GitHub vulnerability alerts to be enabled; this preset does not
 change repository security settings and never automerges a security update.
 
+Maintenance commits and pull request titles end with `[skip release]`.
+semantic-release excludes such commits from its analysis, and the merge commit
+alone is not a conventional commit, so a devDependency or GitHub Actions update
+never publishes a new package version. Substantive changes release as before.
+
 Validate with the runner's pinned version before changing a preset:
 
 ```sh
