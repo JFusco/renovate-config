@@ -1,19 +1,21 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": [
-    "Opt-in npm and GitHub Actions maintenance; first adopter: CMS Vocabulary."
+    "Publisher overlay: exact dependency pins and per-commit release suppression."
   ],
-  "extends": ["config:recommended"],
-  "enabledManagers": ["npm", "github-actions"],
-  "automerge": false,
-  "dependencyDashboard": false,
-  "semanticCommits": "enabled",
-  "commitMessageAction": "bump",
-  "commitMessageTopic": "{{depName}}",
+  "extends": [
+    "github>JFusco/renovate-config:standard"
+  ],
+  "rangeStrategy": "pin",
   "commitMessageSuffix": "[skip release]",
   "vulnerabilityAlerts": {
-    "enabled": true,
+    "enabled": false,
     "automerge": false,
+    "schedule": [],
+    "minimumReleaseAge": null,
+    "dependencyDashboardApproval": false,
+    "groupName": null,
+    "prCreation": "immediate",
     "commitMessageSuffix": "[SECURITY] [skip release]"
   }
 }

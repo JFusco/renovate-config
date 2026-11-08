@@ -1,0 +1,121 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Pin Courier routine maintenance with immediate first-party eligibility; Dependabot owns security repairs."
+  ],
+  "extends": [
+    "config:recommended"
+  ],
+  "enabledManagers": [
+    "npm",
+    "github-actions"
+  ],
+  "automerge": false,
+  "dependencyDashboard": true,
+  "ignoreScripts": true,
+  "timezone": "America/New_York",
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 10,
+  "branchConcurrentLimit": 10,
+  "semanticCommits": "enabled",
+  "commitMessageAction": "bump",
+  "commitMessageTopic": "{{depName}}",
+  "schedule": [
+    "* * * * 1"
+  ],
+  "minimumReleaseAgeBehaviour": "timestamp-required",
+  "github-actions": {
+    "pinDigests": true
+  },
+  "vulnerabilityAlerts": {
+    "enabled": false,
+    "automerge": false,
+    "schedule": [],
+    "minimumReleaseAge": null,
+    "dependencyDashboardApproval": false,
+    "groupName": null,
+    "prCreation": "immediate"
+  },
+  "osvVulnerabilityAlerts": false,
+  "packageRules": [
+    {
+      "description": "Ordinary published versions settle for seven days.",
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch"
+      ],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Group scheduled ordinary non-major npm updates.",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "pinDigest",
+        "digest"
+      ],
+      "groupName": "npm maintenance"
+    },
+    {
+      "description": "Group scheduled ordinary non-major Actions updates.",
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "pinDigest",
+        "digest"
+      ],
+      "groupName": "GitHub Actions maintenance"
+    },
+    {
+      "description": "Pin/digest changes have no publication-age claim.",
+      "matchUpdateTypes": [
+        "pin",
+        "pinDigest",
+        "digest"
+      ],
+      "minimumReleaseAge": null
+    },
+    {
+      "description": "Majors remain separate and require maintainer dashboard approval.",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "groupName": null,
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Rollback and replacement proposals require explicit review.",
+      "matchUpdateTypes": [
+        "rollback",
+        "replacement"
+      ],
+      "groupName": null,
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "First-party releases are eligible on every scan within shared capacity.",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchPackageNames": [
+        "cms-field-vocabulary",
+        "ui-design-brain",
+        "@verndale/ui-design-brain"
+      ],
+      "schedule": [],
+      "minimumReleaseAge": null,
+      "dependencyDashboardApproval": false,
+      "groupName": null,
+      "prPriority": 10
+    }
+  ]
+}
