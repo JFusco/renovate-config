@@ -13,7 +13,7 @@ not live delivery or vulnerability-closure evidence.
 | JFusco/ui-design-brain | maintenance; root package/lock and Actions | Maintainer |
 | JFusco/cms-field-vocabulary | maintenance; owned npm manifests/locks and Actions | Office |
 | JFusco/brain | standard; root package/lock and independent web/brain package/lock | Office |
-| JFusco/design-passport | standard; root/workspace lock, companion package and Actions; retain catalog sync | Maintainer |
+| JFusco/design-passport | standard; npm root/workspace lock and companion package; retain catalog sync | Maintainer |
 | JFusco/the-office | standard; application package/lock and Actions, after hosted isolated Quality passes | Maintainer |
 | JFusco/renovate-config | standard with only github-actions; engine upgrades remain deliberate | Maintainer |
 | verndale/migrator | standard plus pip_requirements for requirements-tooling.txt; owned root/UI manifests, locks and Actions | Maintainer |
