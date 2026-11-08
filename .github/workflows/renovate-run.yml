@@ -1,0 +1,99 @@
+name: Pin Courier target runner
+on:
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+    secrets:
+      RENOVATE_APP_CLIENT_ID:
+        required: true
+      RENOVATE_APP_PRIVATE_KEY:
+        required: true
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      owner: ${{ steps.target.outputs.owner }}
+      repository: ${{ steps.target.outputs.repository }}
+      active: ${{ steps.admission.outputs.active }}
+    steps:
+      - name: Checkout reviewed configuration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: JFusco/renovate-config
+          ref: 9c1895a7fe84e2de36b2a409eaae04071b9dff0b
+          path: pin-courier-config
+          persist-credentials: false
+      - name: Validate fixed caller and target before credentials
+        id: target
+        env:
+          INPUT_TARGET: ${{ inputs.target }}
+          CALLER_PRIVATE: ${{ github.event.repository.private }}
+        run: node pin-courier-config/scripts/runner-profile.cjs
+      - name: Check staged admission
+        id: admission
+        env:
+          INPUT_TARGET: ${{ inputs.target }}
+          PUBLIC_TARGETS_JSON: ${{ vars.PIN_COURIER_PUBLIC_TARGETS || '[]' }}
+          PRIVATE_ENABLED: ${{ vars.PIN_COURIER_ENABLED }}
+        run: |
+          node <<'JS'
+          const fs = require('node:fs');
+          const { PUBLIC_TARGETS } = require('./pin-courier-config/scripts/runner-profile.cjs');
+          const requested = JSON.parse(process.env.PUBLIC_TARGETS_JSON);
+          if (!Array.isArray(requested) || requested.some(target => !PUBLIC_TARGETS.includes(target))) {
+            throw new Error('Public admission must contain only fixed public targets.');
+          }
+          const active = process.env.GITHUB_REPOSITORY === 'JFusco/renovate-config'
+            ? requested.includes(process.env.INPUT_TARGET) : process.env.PRIVATE_ENABLED === 'true';
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `active=${active}\n`);
+          JS
+  renovate:
+    needs: validate
+    if: needs.validate.outputs.active == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: pin-courier-target-${{ inputs.target }}
+      cancel-in-progress: false
+    steps:
+      - name: Checkout reviewed configuration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: JFusco/renovate-config
+          ref: 9c1895a7fe84e2de36b2a409eaae04071b9dff0b
+          path: pin-courier-config
+          persist-credentials: false
+      - name: Generate the trusted single-repository profile
+        env:
+          INPUT_TARGET: ${{ inputs.target }}
+          CALLER_PRIVATE: ${{ github.event.repository.private }}
+        run: node pin-courier-config/scripts/runner-profile.cjs
+      - name: Mint scoped Pin Courier token
+        id: token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ secrets.RENOVATE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ needs.validate.outputs.owner }}
+          repositories: ${{ needs.validate.outputs.repository }}
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+          permission-workflows: write
+          permission-statuses: write
+          permission-checks: read
+          permission-administration: read
+          permission-vulnerability-alerts: read
+      - name: Run pinned Renovate
+        uses: renovatebot/github-action@2804199d260ad00c1fae0e9e842888369391c776 # v46.3.10
+        with:
+          configurationFile: pin-courier-config/runner.generated.json
+          token: ${{ steps.token.outputs.token }}
+          renovate-version: 44.190.0
+        env:
+          LOG_LEVEL: info
