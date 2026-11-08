@@ -1,0 +1,176 @@
+{
+  "ui-design-brain": {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+      "github>JFusco/renovate-config:maintenance"
+    ],
+    "lockFileMaintenance": {
+      "enabled": true,
+      "schedule": [
+        "* * * * 1"
+      ]
+    }
+  },
+  "cms-field-vocabulary": {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+      "github>JFusco/renovate-config:maintenance"
+    ],
+    "lockFileMaintenance": {
+      "enabled": true,
+      "schedule": [
+        "* * * * 1"
+      ]
+    }
+  },
+  "brain": {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+      "github>JFusco/renovate-config:standard"
+    ],
+    "lockFileMaintenance": {
+      "enabled": true,
+      "schedule": [
+        "* * * * 1"
+      ]
+    }
+  },
+  "design-passport": {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+      "github>JFusco/renovate-config:standard"
+    ],
+    "lockFileMaintenance": {
+      "enabled": true,
+      "schedule": [
+        "* * * * 1"
+      ]
+    },
+    "constraints": {
+      "pnpm": "10.33.0"
+    },
+    "packageRules": [
+      {
+        "description": "Regenerate the root UI catalog only when its owning package changes.",
+        "matchManagers": [
+          "npm"
+        ],
+        "matchPackageNames": [
+          "ui-design-brain"
+        ],
+        "matchFileNames": [
+          "package.json"
+        ],
+        "postUpgradeTasks": {
+          "commands": [
+            "pnpm install --frozen-lockfile --ignore-scripts",
+            "pnpm catalog:sync"
+          ],
+          "executionMode": "branch",
+          "fileFilters": [
+            "src/generated/ui-design-brain.catalog.json"
+          ],
+          "installTools": {
+            "pnpm": {}
+          }
+        }
+      }
+    ]
+  },
+  "the-office": {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+      "github>JFusco/renovate-config:standard"
+    ],
+    "lockFileMaintenance": {
+      "enabled": true,
+      "schedule": [
+        "* * * * 1"
+      ]
+    }
+  },
+  "migrator": {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+      "github>JFusco/renovate-config:standard"
+    ],
+    "lockFileMaintenance": {
+      "enabled": true,
+      "schedule": [
+        "* * * * 1"
+      ]
+    },
+    "enabledManagers": [
+      "npm",
+      "github-actions",
+      "pip_requirements"
+    ],
+    "ignorePaths": [
+      "**/node_modules/**",
+      "**/bower_components/**",
+      "**/vendor/**",
+      "**/examples/**",
+      "**/__tests__/**",
+      "**/test/**",
+      "**/tests/**",
+      "**/__fixtures__/**",
+      "templates/**"
+    ],
+    "ignoreDeps": [
+      "xlsx",
+      "@optimizely/cms-cli",
+      "@optimizely/cms-sdk"
+    ],
+    "packageRules": [
+      {
+        "description": "Keep the owned root Contentstack type generator current.",
+        "matchPackageNames": [
+          "@contentstack/types-generator"
+        ],
+        "matchFileNames": [
+          "package.json"
+        ],
+        "enabled": true
+      },
+      {
+        "description": "Only requirements-tooling.txt is owned by generic Python maintenance.",
+        "matchManagers": [
+          "pip_requirements"
+        ],
+        "matchFileNames": [
+          "!requirements-tooling.txt"
+        ],
+        "enabled": false
+      }
+    ]
+  },
+  "ai-orchestration": {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+      "github>JFusco/renovate-config:standard"
+    ],
+    "lockFileMaintenance": {
+      "enabled": false
+    },
+    "ignoreDeps": [
+      "@verndale/accessibility-standards",
+      "@verndale/ui-design-brain",
+      "@optimizely/cms-sdk"
+    ]
+  },
+  "renovate-config": {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+      "github>JFusco/renovate-config:standard"
+    ],
+    "lockFileMaintenance": {
+      "enabled": true,
+      "schedule": [
+        "* * * * 1"
+      ]
+    },
+    "enabledManagers": [
+      "github-actions"
+    ]
+  }
+}

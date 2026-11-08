@@ -1,312 +1,337 @@
-# renovate-config
+# Pin Courier maintenance
 
-Shared [Renovate](https://docs.renovatebot.com/) preset and central runner for
-my repositories. Renovate runs as the **Pin Courier** GitHub App and opens one
-pull request per package when a managed package publishes a new version. It
-merges nothing unless a consumer opts in to Renovate automerge in its own
-`renovate.json`.
+Shared Renovate presets and a fixed GitHub App runner for eight repositories.
+Renovate proposes routine updates; Dependabot initially produces eligible
+alert-driven security repairs. Joe and repository maintainers operate this system.
+Branch protection remains deferred. Configuration and passing fixture checks are
+not live delivery or vulnerability-closure evidence.
 
 ## What it manages
 
-Only first-party npm packages listed in [`default.json`](default.json):
+| Repository | Preset and owned surfaces | Merge owner |
+| --- | --- | --- |
+| JFusco/ui-design-brain | maintenance; root package/lock and Actions | Maintainer |
+| JFusco/cms-field-vocabulary | maintenance; owned npm manifests/locks and Actions | Office |
+| JFusco/brain | standard; root package/lock and independent web/brain package/lock | Office |
+| JFusco/design-passport | standard; root/workspace lock, companion package and Actions; retain catalog sync | Maintainer |
+| JFusco/the-office | standard; application package/lock and Actions, after hosted isolated Quality passes | Maintainer |
+| JFusco/renovate-config | standard with only github-actions; engine upgrades remain deliberate | Maintainer |
+| verndale/migrator | standard plus pip_requirements for requirements-tooling.txt; owned root/UI manifests, locks and Actions | Maintainer |
+| verndale/ai-orchestration | standard for ordinary dependencies and Actions; specialized pair/SDK producers; no lockfile maintenance | Maintainer |
 
-- `cms-field-vocabulary`
-- `ui-design-brain`
-- `@verndale/ui-design-brain`, the frozen pre-transfer name, until its last
-  consumer moves to `ui-design-brain`
+Migrator ignores `templates/**` as well as normal generated/test exclusions.
+Direct-URL `xlsx` and the jointly reviewed Optimizely CLI/SDK use `ignoreDeps`;
+Contentstack's root types-generator remains covered. Generated application
+literals remain with generator maintenance. Template repairs retain the existing
+maintenance hash/revision/reason/history procedure and upstream provenance.
+Existing generated clients are never automatically upgraded or deployed.
 
-Every other dependency is disabled. Exact pins move to the new exact version;
-Renovate's npm default updates in-range versions in the lockfile only.
+ai-orchestration ignores direct updates to its accessibility/UI compatibility
+pair and CMS SDK. Sync Design Contracts and Sync Optimizely CMS SDK retain their
+own selection, generation and branches. Its maintainer must compare protected
+base/head package/snapshot entries and all reachable lockfile edges, including
+dotenv, before merging unrelated dependency PRs. Run contract checks, applicable
+SDK checks and verify:ci; hold unexplained changes. Merge shared-lockfile changes
+one at a time, then regenerate/rebase and reverify remaining PRs. See that
+repository's OPERATING.md for existing-PR recovery. Lockfile maintenance stays
+disabled until a focused refresh proves preservation and passes review.
 
-`prHourlyLimit` is `0` (no limit) because each release dispatches the runner;
-Renovate's default of two pull requests per repository per hour would hold a
-later release in the same hour until the next scheduled run.
+## Presets and precedence
 
-Pull request titles and commits look like
-`chore(deps): bump cms-field-vocabulary to v1.3.8`, which passes Conventional
-Commits linting with a 50-character subject limit.
+- `default.json` is the unchanged legacy npm-only first-party allowlist.
+- `standard.json` independently extends `config:recommended`, enabling npm and
+  github-actions with automerge false, dashboard true, ignored install scripts,
+  America/New_York, no hourly limit, and ten concurrent PRs/branches.
+- `maintenance.json` extends only standard, adding publisher exact pinning and
+  `[skip release]` metadata. Consumers extend only standard; publishers extend
+  only maintenance. Never combine default and standard.
+
+```json
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>JFusco/renovate-config:standard"],
+  "lockFileMaintenance": { "enabled": true, "schedule": ["* * * * 1"] }
+}
+```
+
+Rules apply in this order: ordinary updates use the whole Monday window;
+third-party major/minor/patch versions require seven days of age with timestamps
+required. Ordinary minor/patch and pin/digest changes group by manager. Actions
+and reusable workflows are SHA-pinned. Pins/digests remain scheduled without a
+seven-day age claim. Rollbacks/replacements stay separate for explicit review.
+Routine third-party majors stay ungrouped and require Dependency Dashboard
+approval, with Monday and age requirements retained.
+
+Last, npm `cms-field-vocabulary`, `ui-design-brain` and
+`@verndale/ui-design-brain` override schedule to empty, age to null, dashboard
+approval to false and group to null, with higher PR priority. Exact pins stay
+exact; newer releases reuse existing package PRs. Immediacy means eligibility on
+every scan, without schedule, age, dashboard or hourly delay. Shared ten-slot
+capacity and GitHub scheduling still constrain delivery; priority reserves no
+slots. Lockfile refreshes have their own whole-Monday schedule and do not
+establish the age of every transitive resolution.
+
+Only publishers receive release-suppression metadata, including
+`[SECURITY] [skip release]`. Their shared complete-message filter excludes marked
+commits from release analysis and notes; a marked head cannot hide earlier
+substantive commits. Shipped behavior changes require ordinary release review
+and an appropriate unmarked commit. Never use `[skip ci]` for maintenance.
 
 ## How it runs
 
-[`.github/workflows/renovate.yml`](.github/workflows/renovate.yml) mints a
-Pin Courier installation token per account and runs Renovate with
-[`runner.json`](runner.json):
+The reviewed reusable `renovate-run.yml` accepts exactly one string input,
+`target`, and the two explicitly named App secrets. The central coordinator
+selects only its six fixed JFusco targets. Each private Verndale caller selects
+only itself, must remain private, and is gated by
+`vars.PIN_COURIER_ENABLED == 'true'`, initially unset. Execution must be on main.
+Release dispatch payloads cannot select repositories, refs, commands or flags.
 
-- `autodiscover`: every repository the app is installed on is a candidate.
-- `requireConfig: required`: only repositories with a `renovate.json` are
-  processed, so installing the app alone changes nothing.
-- `onboarding: false`: Renovate never opens onboarding pull requests.
-- `allowedCommands`: the only commands a repository's `postUpgradeTasks` may
-  run, as anchored patterns. Today that is design-passport's catalog sync.
+The reusable workflow checks out `JFusco/renovate-config` at a reviewed literal
+configuration commit **C** with persisted credentials disabled. It validates the
+caller/target before minting a token, generates one repository profile from
+`runner.json`, and passes that file through the pinned action's
+`configurationFile` input. Autodiscovery and onboarding are off, consumer
+configuration is required, allowed commands default to empty, install scripts
+are globally disallowed, and `platformCommit` is enabled. A qualifying canary
+commit must remain GitHub-verified.
 
-Triggers:
+Jobs run at most thirty minutes. The caller GITHUB_TOKEN has contents read only.
+Each installation token names its explicit owner and one short repository name:
+contents/issues/pull-requests/workflows/statuses write;
+checks/administration/vulnerability-alerts read. The pinned token action calls
+alert access `permission-vulnerability-alerts`. Missing grants stop activation;
+never inherit every App grant as a workaround. Normal job-end revocation stays
+on. The raw App key is passed only to the token action, never Renovate or catalog
+commands. [Pinned token inputs](https://raw.githubusercontent.com/actions/create-github-app-token/64ab729a6294000f5aa4a4bc0b73d1f32bc45510/action.yml).
 
-| Trigger | Purpose |
-| --- | --- |
-| `repository_dispatch` (`package-released`) | Sent by a publishing repository after a release |
-| `schedule` (every 6 hours) | Fallback when a dispatch is missed |
-| `workflow_dispatch` | Manual run from the Actions tab |
+Public admission starts empty. Administrators add fixed public target names to
+`PIN_COURIER_PUBLIC_TARGETS`, a JSON array, beginning with
+`["JFusco/renovate-config"]` and then adding the next approved canary in order.
+Unlisted targets validate but mint no token and perform no scan. The complete
+public matrix remains explicit; invalid caller/target combinations still fail
+before admission is considered. Private admission uses only its caller's
+PIN_COURIER_ENABLED gate.
 
-Accounts run separately because an installation token covers one account.
-Add an account to the workflow matrix once the app is installed there.
+Central and private callers retain `23 */6 * * *`, workflow_dispatch and
+`package-released`. Coordinator concurrency and per-target runner concurrency
+use distinct non-cancelling groups. GitHub may coalesce pending notifications.
+Central forwarding jobs independently submit notifications to the two fixed
+private endpoints, each with a destination-scoped contents-write token. Only
+publisher/package/version/revision/release_url strings are forwarded. Public
+logs contain submission success/failure only, never private response bodies,
+runs, alerts, dependency graphs, caches or artifacts. Public scans and the other
+forward attempt are independent of a forwarding failure. Private schedules are
+fallback; private processing stays in private repositories.
 
-## End-to-end flow
+## Merge ownership
 
-```
- PUBLISHERS                     RUNNER                        CONSUMERS
- cms-field-vocabulary ─┐                                   ┌─ JFusco/brain
-                       ├─ dispatch ─► renovate-config ────┼─ JFusco/design-passport
- ui-design-brain ──────┘   (or the 6-hour schedule)       ├─ verndale/migrator
-                                                          └─ cms-field-vocabulary,
-                                                             ui-design-brain (maintenance)
-```
+Office is the sole dependency-merge owner for Brain and CMS, including retained
+Dependabot PRs. Joe or a maintainer places a Dependabot PR card in Ready; Office
+uses its existing board pickup, qualification, review and merge path. Do not add
+Dependabot to Pin Courier/wiki-sync automatic adoption. Retain numeric Pin
+Courier identity 351979519, verified bot commits, same-repository/main/non-draft
+qualification, current-head review/checks, holds, expected-SHA merging, durable
+effects, read-back and duplicate-adoption reconciliation. All other repositories
+retain maintainer review. No extra approval-count gate or automatic merge path
+is introduced.
 
-### 1. A publisher releases
+## App identity and recovery
 
-`JFusco/cms-field-vocabulary` and `JFusco/ui-design-brain` release with
-semantic-release on every push to `main` (ui-design-brain after Quality
-passes, and only for substantive revisions). Every conventional commit type
-releases: `feat` is a minor, a breaking change is a major, and every other
-type is a patch. The only skips are commits carrying `[skip release]`, the
-release commit itself, and wiki-only revisions.
+The existing App is `pin-courier`, client ID `Iv23liCFdR4MIQUP6BZg`.
+Repository Actions secrets are `RENOVATE_APP_CLIENT_ID` and
+`RENOVATE_APP_PRIVATE_KEY`. Approved holders are JFusco/renovate-config,
+JFusco/ui-design-brain, JFusco/cms-field-vocabulary, verndale/migrator and
+verndale/ai-orchestration; the latter two are provisioned only after the access
+inventory. Do not add an unrestricted organization secret.
 
-When a version was published, the workflow waits until npm serves both the
-packument and the tarball, mints a Pin Courier token that can only write to
-this repository, and sends the `package-released` dispatch (see
-[Notify on release](#notify-on-release)).
+Documented App repository permissions are administration, Dependabot alerts and
+metadata read; checks, commit statuses, contents, issues, merge queues, pull
+requests and workflows read/write. The documented organization permission is
+members read. Actual installation grants and selections must be recorded before
+provisioning; a runner token requests only the narrowed profile above.
 
-### 2. The runner runs
+Recovery uses the existing App's Credentials page: generate a new private key,
+update every approved RENOVATE_APP_PRIVATE_KEY holder (including both private
+callers when provisioned), verify the replacements, then delete/revoke the old
+key. Never copy key material into logs, evidence, commits or review packets.
 
-One job per installed account mints that account's token and runs Renovate
-over every installed repository that has a `renovate.json`. Runs never
-overlap: one pending run is kept and a newer trigger replaces it, and every
-run scans all configured repositories. The six-hour schedule
-is the fallback when a dispatch is missed, and GitHub often starts it late.
+## Trust boundaries
 
-### 3. Each repository's preset decides
+The user selected private callers and accepted shared App-key custody. Approved
+repository Actions-secret holders are renovate-config, the two JFusco publishers,
+and only verndale/migrator and verndale/ai-orchestration for private execution.
+Do not provision an unrestricted organization secret.
 
-| Preset | Used by | Tracks | Pull requests |
-| --- | --- | --- | --- |
-| `default.json` | brain, design-passport, migrator | `cms-field-vocabulary`, `ui-design-brain` | one per package per release, no hourly cap, never automerged by the preset |
-| `maintenance.json` | cms-field-vocabulary, ui-design-brain | their own devDependencies and GitHub Actions | `[skip release]` suffix (also on security updates), so a merge publishes nothing; each adopter's `renovate.json` adds its schedule (Mondays) and minor/patch grouping |
+Administrators and people able to modify secret-consuming workflows in **any**
+holder can cause key extraction. An extracted key can mint tokens across the
+App's granted installations, including the JFusco publishers. The known JFusco
+set is renovate-config, ui-design-brain, cms-field-vocabulary, design-passport
+and brain, plus the-office when enrolled. Actual grants determine access and
+include documented contents/workflow writes capable of changing publisher
+release workflows. Inventory any additional installed repositories before
+rollout. Narrow repository-scoped tokens do not constrain the authority of the
+key; deferred branch protection supplies no independent barrier.
 
-The two publishers do not depend on each other, so neither consumes the
-`default` preset.
+Before adding secrets, an authorized administrator records actual installations,
+selected repositories, permissions and workflow-capable custodians **without
+credentials**. Install the existing App on Office if absent. Narrowly allow the
+reviewed reusable-workflow pin and renovatebot/github-action pin in private
+Actions policies while retaining GitHub-owned action allowance. Maintain these
+allowlists on workflow releases. If provisioning or Actions policy is unavailable,
+leave private activation paused; never resume public Verndale processing.
 
-### 4. Each consumer merges
+Suspected exposure requires rotation of the existing App key across every
+approved holder, followed by revocation of the old key through the existing App
+Credentials recovery procedure. [App scope and permissions](https://github.com/actions/create-github-app-token#inputs).
 
-| Repository | Merge | After the pull request opens |
-| --- | --- | --- |
-| `JFusco/brain` | merge commit | Renovate automerges on its next run once checks pass (`automerge` in its `renovate.json`; no branch protection, so `platformAutomerge` is off) |
-| `JFusco/design-passport` | squash | the pull request already carries the regenerated `ui-design-brain` catalog ([Post-upgrade tasks](#post-upgrade-tasks)); a human merges |
-| `verndale/migrator` | squash | PR-body lint is skipped on `renovate/` branches; generated applications read their pins from the installed packages; a human merges |
-| `cms-field-vocabulary`, `ui-design-brain` | merge commit | commitlint trusts the installed Pin Courier App identity, not a branch prefix; Quality still runs in full; a human merges |
+## Post-upgrade tasks
 
-### Self-healing
+Only Design Passport receives these anchored command patterns:
+`^pnpm install --frozen-lockfile --ignore-scripts$` and `^pnpm catalog:sync$`.
+Its root ui-design-brain package rule retains pnpm 10.33.0, branch execution,
+installTools and the sole output `src/generated/ui-design-brain.catalog.json`.
+Review package.json and scripts/sync-catalog.mjs on changes: matching a command
+name does not constrain the behavior of a package script or installed code.
+Every other generated execution profile has empty allowedCommands.
 
-- A missed dispatch is caught by the next scheduled run.
-- A pull request that conflicts after another merge is rebased by Renovate on
-  its next run; `gh workflow run renovate.yml -R JFusco/renovate-config`
-  forces one.
-- A tarball that lags the packument delays the dispatch by up to about ten
-  minutes; after that the publisher warns and dispatches anyway, and the
-  scheduled run catches anything the consumer could not install yet.
+## Security production
 
-### Not covered on purpose
+Dependabot is the initial alert-driven producer in all eight repositories.
+Renovate vulnerabilityAlerts.enabled and osvVulnerabilityAlerts are false in
+every adopted configuration. The disabled vulnerability configuration remains
+testable for a later approved transition: no grouping, schedule, age or dashboard
+approval; immediate PR creation; automerge false. Fixtures enabling it do not
+enable a second live producer.
 
-- `verndale/ai-orchestration` has the app installed but no `renovate.json`.
-  Its `ui-design-brain` version is bound by `@verndale/accessibility-standards`
-  through that repository's own Sync Design Contracts workflow, and it still
-  uses the scoped package name.
-- The frozen `@verndale/ui-design-brain` rule stays until that migration.
+Record dependency-graph, alert and security-update settings with read-back.
+Version-update YAML is not proof of hosted security-update status. Publisher
+Dependabot YAML uses weekly npm/Actions entries, zero version-update PRs and
+`"chore(deps): [skip release] "` with its trailing space. Verify an actual
+generated message before accepting a security-maintenance merge. Hold and
+regenerate older unmarked PRs. Preserve enabled detection and security updates
+in UI, Migrator and ai-orchestration; enable missing feeds/settings in the other
+five during gated rollout. Maintainers own excluded/unsupported repairs.
 
-### Trust boundaries
+Refresh alert inventories after detection is enabled; trace repairs through
+parents and actual package-manager resolution. Track unsupported fixes with
+owner, blocker and review date. Distinguish fixed alerts from awaited rescans;
+never dismiss because automation cannot repair. Absence of a UI Renovate repair
+PR does not prove a pnpm capability limit: inspect App alert grants, fetch results,
+extraction, available fixes and resolution/suppression errors, or retain a gap.
 
-- The Pin Courier private key exists only as Actions secrets here and in the
-  two publishers.
-- A publisher's token can only dispatch to this repository.
-- A runner token reaches only the repositories the app is installed on.
-- Every change arrives as a pull request under the repository's own checks.
-
-## Opt a repository in
-
-### Full repository maintenance (opt-in)
-
-CMS Vocabulary is the first adopter of [`maintenance.json`](maintenance.json).
-Unlike the first-party-only default, this independent preset enables npm and
-GitHub Actions dependency updates. It keeps Renovate automerge disabled; the
-repository's checks and review policy still govern each update. GitHub Actions
-continues to run validation, releases, wiki generation, and vendor-source scans.
-
-```json
-{
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>JFusco/renovate-config:maintenance"]
-}
-```
-
-Adopters should add their own scheduling, grouping, and PR-metadata rules, then
-replace their other scheduled dependency updater in the same cutover. Existing
-users of the default preset retain the first-party-only policy. Vulnerability
-PRs require GitHub vulnerability alerts to be enabled; this preset does not
-change repository security settings and never automerges a security update.
-
-Maintenance commits and pull request titles end with `[skip release]`.
-semantic-release excludes such commits from its analysis, and the merge commit
-alone is not a conventional commit, so a devDependency or GitHub Actions update
-never publishes a new package version. Substantive changes release as before.
-
-Validate with the runner's pinned version before changing a preset:
-
-```sh
-npx --yes --package renovate@44.190.0 -- renovate-config-validator --strict default.json maintenance.json
-```
-
-### First-party package consumers
-
-1. Add the repository to Pin Courier's installation (app settings, then
-   **Install App**, then the account's gear icon).
-2. Commit `renovate.json` at the repository root:
-
-   ```json
-   {
-     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-     "extends": ["github>JFusco/renovate-config"]
-   }
-   ```
-
-Consumers need no secrets.
-
-### Post-upgrade tasks
-
-A consumer that commits files generated from a managed package can regenerate
-them inside the update branch, so the pull request arrives complete. Each
-command must match `allowedCommands` in [`runner.json`](runner.json), and
-`installTools` installs the package manager at the version in `constraints`.
-Install without lifecycle scripts: a `prepare` script that installs git hooks
-(husky) breaks Renovate's later checkout in the same clone.
-design-passport regenerates its `ui-design-brain` catalog this way:
-
-```json
-{
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>JFusco/renovate-config"],
-  "constraints": { "pnpm": "10.33.0" },
-  "postUpgradeTasks": {
-    "commands": ["pnpm install --frozen-lockfile --ignore-scripts", "pnpm catalog:sync"],
-    "executionMode": "branch",
-    "fileFilters": ["src/generated/ui-design-brain.catalog.json"],
-    "installTools": { "pnpm": {} }
-  }
-}
-```
+Any later switch from Dependabot requires representative direct/transitive
+Renovate repair PRs, successful installs/checks, protected-scope accounting and
+post-merge alert read-back. A green scan or configuration probe is insufficient;
+no suitable sample means no switch.
 
 ## Notify on release
 
-A publishing repository that uses semantic-release with `@semantic-release/git`
-adds these steps around its publish step, plus the two secrets below:
+Publishers retain GITHUB_TOKEN/OIDC publication and destination-scoped
+contents-write dispatch credentials. Readiness checks wait forty times at
+fifteen-second intervals within twelve minutes for both the published version
+and its tarball. Results are ready, timeout or error, observable despite
+continue-on-error. Timeout/error warns of delayed availability but still attempts
+notification; scheduled scans provide fallback.
 
-```yaml
-      - name: Record pre-release revision
-        id: before
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+After successful publication, the job summary records package/version, published
+revision, registry result and notification accepted/failed. Token/dispatch failure
+is actionable partial delivery; publication is not undone. New optional JSON
+metadata is publisher, package, version, revision and release_url, derived from
+the published release. Payloads are data, never shell or execution configuration.
+Legacy events without client_payload remain valid.
 
-      # ... existing semantic-release step ...
+Notification-only replay, with authorized dispatch credentials:
 
-      - name: Detect a published release
-        id: released
-        env:
-          BEFORE_SHA: ${{ steps.before.outputs.sha }}
-        run: |
-          # @semantic-release/git commits the release, so HEAD moves only when a version was published.
-          if [ "$(git rev-parse HEAD)" != "$BEFORE_SHA" ]; then echo 'published=true' >> "$GITHUB_OUTPUT"; fi
-
-      - name: Wait for the release on the npm registry
-        if: steps.released.outputs.published == 'true'
-        timeout-minutes: 12
-        continue-on-error: true
-        run: |
-          # npm accepts the upload minutes before the registry serves it, and the tarball can lag the packument.
-          node --input-type=module <<'EOF'
-          import { readFile } from 'node:fs/promises';
-          const { name, version } = JSON.parse(await readFile('package.json', 'utf8'));
-          const url = `https://registry.npmjs.org/${name.replace('/', '%2F')}`;
-          for (let attempt = 1; attempt <= 40; attempt++) {
-            try {
-              const response = await fetch(url);
-              const tarball = response.ok && (await response.json()).versions?.[version]?.dist?.tarball;
-              if (tarball && (await fetch(tarball, { method: 'HEAD' })).ok) {
-                console.log(`${name}@${version} and its tarball are on the registry after ${attempt} check(s).`);
-                process.exit(0);
-              }
-            } catch (error) {
-              console.log(`Registry check ${attempt} failed: ${error.message}`);
-            }
-            await new Promise((resolve) => setTimeout(resolve, 15_000));
-          }
-          console.log(`::warning::${name}@${version} and its tarball are not on the registry after 10 minutes; dispatching anyway.`);
-          EOF
-
-      - name: Mint Pin Courier token
-        id: courier
-        if: steps.released.outputs.published == 'true'
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        with:
-          client-id: ${{ secrets.RENOVATE_APP_CLIENT_ID }}
-          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
-          owner: JFusco
-          repositories: renovate-config
-          permission-contents: write
-
-      - name: Notify the Renovate runner
-        if: steps.released.outputs.published == 'true'
-        env:
-          GH_TOKEN: ${{ steps.courier.outputs.token }}
-        run: gh api --method POST repos/JFusco/renovate-config/dispatches -f event_type=package-released
+```sh
+gh api --method POST repos/JFusco/renovate-config/dispatches -f event_type=package-released
 ```
 
-`POST /repos/{owner}/{repo}/dispatches` needs **Contents: write** on this
-repository, so the app must be installed here.
+This scans public targets and forwards notifications without invoking a publisher.
+Private-only retries use:
 
-npm accepts an upload a few minutes before the registry serves it, so the
-wait step holds the dispatch until the new version and its tarball are
-visible. Without it the dispatched run can miss the release and leave the
-update to the schedule, or open an update whose tarball does not install yet.
+```sh
+gh workflow run renovate.yml -R verndale/migrator --ref main
+gh workflow run renovate.yml -R verndale/ai-orchestration --ref main
+```
 
-## Pin Courier app
+Repeated notifications may coalesce and rescan; they never publish again.
+Before retrying interrupted publication, reconcile the release revision, npm
+version, Git tag and GitHub Release. If publication completed, replay notification
+only; preserve immutable published versions/tags/releases.
 
-| Setting | Value |
-| --- | --- |
-| Slug | `pin-courier` |
-| Client ID | `Iv23liCFdR4MIQUP6BZg` |
-| Webhook | inactive |
-| Installable on | any account |
-| Logo | [`assets/pin-courier.png`](assets/pin-courier.png) (512 px, transparent; source [`pin-courier.svg`](assets/pin-courier.svg)) |
-| Badge background | `#0F766E` |
+## Maintenance and workflow releases
 
-Repository permissions, per
-[Renovate's GitHub App requirements](https://docs.renovatebot.com/modules/platform/github/):
-Administration read; Checks, Commit statuses, Contents, Issues, Merge queues,
-Pull requests and Workflows read and write; Dependabot alerts read; Metadata
-read. Organization permission: Members read.
+Retain Renovate **44.190.0**, renovatebot/github-action **46.3.10**, and
+create-github-app-token **3.3.0** initially. Engine upgrades are deliberate.
+Validation is secret-free on PRs and main pushes, requires native RE2, resolves
+candidate shared presets rather than old main, uses strict no-global repository
+validation, and validates runner/generated profiles separately as globals.
 
-Secrets, set as repository Actions secrets in this repository and in each
-publishing repository:
+For local checks, install exact renovate@44.190.0 and re2@1.27.0 in a disposable
+directory, set RENOVATE_MODULE_PATH to its node_modules/renovate, then run:
 
-| Secret | Value |
-| --- | --- |
-| `RENOVATE_APP_CLIENT_ID` | The client ID above |
-| `RENOVATE_APP_PRIVATE_KEY` | Full contents of a Pin Courier private key (`.pem`) |
+```sh
+node scripts/validate-renovate.mjs
+node --test tests/*.test.mjs
+```
 
-To rotate the key, generate a new one under the app's **Credentials**, update
-every `RENOVATE_APP_PRIVATE_KEY`, then delete the old key.
+Consumer fixtures are declared samples. Update them with actual root consumer
+configuration changes and compare their normalized JSON during delivery. They
+contain no private inventories and never dispatch production workflows.
 
-## Maintenance
+Release configuration commit C first. A later workflow commit **W** embeds C's
+literal full SHA; tag W with a semantic version, for example v1.0.0. External
+callers use W's full SHA and a version comment. Review W/C together and update
+Actions allowlists. This avoids self-referential hashes. Shared presets continue
+through reviewed default-branch distribution: pinning runner config does not pin
+presets. The built-in Actions manager maintains reusable-workflow references.
+[Caller context](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations).
 
-- Third-party actions are pinned to commit SHAs because they handle the app's
-  key and token; the trailing comment names the release.
-- Bump `renovate-version` and the action SHAs deliberately, preferring
-  releases at least a week old.
-- GitHub disables scheduled workflows in public repositories after 60 days
-  without repository activity. Re-enable the workflow from the Actions tab if
-  that happens.
+## Rollout and recovery
+
+Inventory current revisions, open PRs, active writers, App grants and settings
+before changing admission. Preserve unrelated work and existing remediation.
+Hold publisher maintenance until suppression and Dependabot metadata are verified.
+Land suppression/sole-owner changes before shared policy and runner releases;
+coordinate both existing maintenance adopters. Enable detection, capture backlogs,
+and use each repository's existing issue/PR process for compatible repairs.
+
+Activate self Actions maintenance with validation, then UI as first dependency
+canary, followed by CMS, Brain, Design Passport, Office, Migrator and
+ai-orchestration. Office enrollment requires hosted isolated Quality. Keep
+Dependabot security production selected throughout. Observe a real update PR,
+GitHub-verified App commits, fresh checks, the intended merge owner and generated
+outputs. CMS's first natural Office adoption is a required observation; a binding
+is not a delivery receipt. Observe maintenance causing no release and a later
+substantive release retaining publication/notification. Record absent live
+samples as unverified rather than manufacturing vulnerable dependencies.
+
+For private cutover, merge the caller while PIN_COURIER_ENABLED is unset. Remove
+the target from central processing, stop admission, drain active **and queued**
+old work, inspect bot branches/PRs, then enable the private caller. Repository
+concurrency groups do not coordinate cross-repository writers. The retired
+owner-wide configuration must not resume. Alert detection and specialized
+writers stay available during the gap. No Office service restart or client/CMS
+deployment is implied; later Office deployment follows its idle/health gate.
+
+Rollback stops admission and drains the affected writer first. Restore a known
+good private W/C pairing or leave Renovate paused with Dependabot and maintainer
+handling; never restore public private-repository scans or owner-wide discovery.
+Restore incompatible manifests/locks together and preserve pair bindings and
+generated outputs together. Keep detection enabled and record reopened exposure.
+Before reverting suppression, hold publisher maintenance through Office (CMS) or
+maintainer review (UI); reverify suppression, commit metadata and ordinary release
+controls before resuming. Preserve Office as Brain/CMS sole owner and use holds.
+Reconcile branches, PR heads and uncertain effects before restarting any producer.
+A separately validated security-producer rollback first disables Renovate
+vulnerability production before restoring Dependabot production.
+
+Owners investigate thirty minutes after an accepted first-party dispatch without
+propagation, fourteen hours without a successful target scan, or two working
+days with an unresolved update PR. These are runbook thresholds using existing
+Actions notifications, dashboards and issues, not new monitors or guarantees.
+Distinguish submission, scan, PR creation, current-head checks, merge, publication
+and alert closure. Public commits contain reviewed instructions only; detailed
+private alerts, run/job identifiers, Office receipts, credentials and operational
+state stay local or in their relevant private repository. Keep
+`docs/audits/2026-11-08-pin-courier/` outside every public staged set.
