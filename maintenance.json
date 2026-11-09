@@ -17,5 +17,17 @@
     "groupName": null,
     "prCreation": "immediate",
     "commitMessageSuffix": "[SECURITY] [skip release]"
-  }
+  },
+  "packageRules": [
+    {
+      "description": "Preserve existing engines compatibility; approved runtime majors widen the supported range.",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchDepTypes": [
+        "engines"
+      ],
+      "rangeStrategy": "widen"
+    }
+  ]
 }
