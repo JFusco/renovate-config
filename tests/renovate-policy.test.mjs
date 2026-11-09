@@ -68,6 +68,29 @@ test('only publishers inherit release markers; Dependabot owns live security pro
   assert.equal(maintenance.vulnerabilityAlerts.commitMessageSuffix, '[SECURITY] [skip release]');
 });
 
+test('publisher pins preserve runtime compatibility ranges while still pinning dependencies', async () => {
+  for (const depType of ['engines', 'dependencies', 'devDependencies']) {
+    const rule = await applyPackageRules({ ...maintenance, manager: 'npm', depName: 'node', packageName: 'node', depType,
+      datasource: 'node-version', currentValue: '>=24.14.0', updateType: 'major' });
+    assert.equal(rule.rangeStrategy, depType === 'engines' ? 'widen' : 'pin');
+    assert.equal(rule.dependencyDashboardApproval, true);
+    assert.equal(rule.minimumReleaseAge, '7 days');
+    assert.equal(rule.commitMessageSuffix, '[skip release]');
+    if (depType === 'engines') {
+      const { getRangeStrategy } = await engine('modules/manager/npm/range.js');
+      const { api } = await engine('modules/versioning/node/index.js');
+      const strategy = getRangeStrategy({ ...rule, depType, currentValue: '>=24.14.0' });
+      const next = api.getNewValue({ currentValue: '>=24.14.0', rangeStrategy: strategy, currentVersion: '24.14.0', newVersion: '26.13.0' });
+      assert.equal(next, '>=24.14.0');
+      const caretStrategy = getRangeStrategy({ ...rule, depType, currentValue: '^24.14.0' });
+      const widened = api.getNewValue({ currentValue: '^24.14.0', rangeStrategy: caretStrategy, currentVersion: '24.14.0', newVersion: '26.13.0' });
+      assert.equal(widened, '^24.14.0 || ^26.0.0');
+      assert.equal(api.matches('24.14.0', widened), true);
+      // A separately approved major adds compatibility without dropping the existing runtime.
+    }
+  }
+});
+
 test('legacy default remains an independent npm-only first-party allowlist', async () => {
   const legacy = await resolveCandidate(read('default.json'));
   assert.deepEqual(legacy.enabledManagers, ['npm']);
