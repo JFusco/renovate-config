@@ -1,6 +1,13 @@
 # Companion issues: implementation and approval-gated rollout
 
-Status: inactive implementation. No live rollout is authorized.
+Status: self-canary authorized only for `JFusco/renovate-config`, tracked in
+[issue 31](https://github.com/JFusco/renovate-config/issues/31). No expansion is
+authorized. Enablement and run receipts are recorded separately from source/CI.
+
+The canary release retains C and W as distinct reviewed commits in one
+merge-commit PR. Only the self-target caller uses W; other callers retain their
+prior immutable pins. Manual `canary_only=true` skips unrelated scans. No
+dependency PR is merged to manufacture lifecycle evidence.
 
 Delivery: [central issue 29](https://github.com/JFusco/renovate-config/issues/29)
 and [Office issue 133](https://github.com/JFusco/the-office/issues/133).
@@ -22,7 +29,7 @@ assignment, enrollment or delivery routing. Existing Renovate policies for
 ui-design-brain, cms-field-vocabulary and other owned packages are unchanged;
 automatic update PRs do not authorize automatic merging.
 
-## Inactive implementation state
+## Initial inactive implementation state (before the self-canary)
 
 - `companion-issues.json` contains no targets.
 - The post-step requires `PIN_COURIER_COMPANIONS_ENABLED=true` in the caller.
