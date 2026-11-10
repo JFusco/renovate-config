@@ -52,12 +52,18 @@ test('caller validation precedes token creation; grants and engine remain explic
     'permission-workflows': 'write', 'permission-statuses': 'write', 'permission-checks': 'read',
     'permission-administration': 'read', 'permission-vulnerability-alerts': 'read',
   });
-  const action = job.steps.at(-1);
+  const action = job.steps.find(step => step.name === 'Run pinned Renovate');
   assert.equal(action.uses, 'renovatebot/github-action@2804199d260ad00c1fae0e9e842888369391c776');
   assert.equal(action.with.configurationFile, 'pin-courier-config/runner.generated.json');
   assert.equal(release.renovateVersion, '44.190.0');
   assert.equal(action.with['renovate-version'], release.renovateVersion);
   assert.equal(JSON.stringify(action).includes('PRIVATE_KEY'), false);
+  const companion = job.steps.at(-1);
+  assert.equal(companion.name, 'Reconcile companion issues');
+  assert.equal(companion.run, 'node pin-courier-config/scripts/run-companion-issues.cjs');
+  assert.equal(companion.if, "${{ !cancelled() && steps.token.outcome == 'success' && vars.PIN_COURIER_COMPANIONS_ENABLED == 'true' }}");
+  assert.deepEqual(companion.env, { INPUT_TARGET: '${{ inputs.target }}', CALLER_PRIVATE: '${{ github.event.repository.private }}',
+    GH_TOKEN: '${{ steps.token.outputs.token }}' });
 });
 
 test('actual admission program stays paused by default and accepts only fixed public targets', () => {
@@ -85,19 +91,27 @@ test('actual admission program stays paused by default and accepts only fixed pu
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
 
-test('released W/C pairing pins the public matrix and gated private callers', () => {
+test('self-canary W/C pairing leaves every other caller on its existing release', () => {
   const pairing = JSON.parse(fs.readFileSync(path.join(root, 'workflow-release.json')));
   assert.equal(pairing.configurationCommit, release.configurationCommit);
   assert.equal(pairing.version, release.version);
   assert.match(pairing.workflowCommit, /^[a-f0-9]{40}$/);
   const expectedUses = `JFusco/renovate-config/.github/workflows/renovate-run.yml@${pairing.workflowCommit}`;
+  const baselineUses = 'JFusco/renovate-config/.github/workflows/renovate-run.yml@c13f985540c9c23527aede87836eb08c285548f1';
+  const baselineConfiguration = '9c1895a7fe84e2de36b2a409eaae04071b9dff0b';
   const coordinator = parse(fs.readFileSync(path.join(root, '.github/workflows/renovate.yml'), 'utf8'));
   const { PUBLIC_TARGETS, PRIVATE_TARGETS } = createRequire(import.meta.url)('../scripts/runner-profile.cjs');
-  assert.deepEqual(Object.keys(coordinator.jobs), ['renovate', 'forward-migrator', 'forward-ai-orchestration']);
+  assert.deepEqual(Object.keys(coordinator.jobs), ['canary', 'renovate', 'forward-migrator', 'forward-ai-orchestration']);
+  assert.equal(coordinator.jobs.canary.uses, expectedUses);
+  assert.deepEqual(coordinator.jobs.canary.with, { target: 'JFusco/renovate-config' });
+  assert.deepEqual(coordinator.jobs.canary.secrets, coordinator.jobs.renovate.secrets);
   assert.deepEqual(coordinator.jobs.renovate.with, { target: '${{ matrix.target }}' });
-  assert.deepEqual(coordinator.jobs.renovate.strategy.matrix.target, PUBLIC_TARGETS);
+  assert.deepEqual(coordinator.jobs.renovate.strategy.matrix.target, PUBLIC_TARGETS.filter(target => target !== 'JFusco/renovate-config'));
   assert.equal(coordinator.jobs.renovate.strategy['fail-fast'], false);
-  assert.equal(coordinator.jobs.renovate.uses, expectedUses);
+  assert.equal(coordinator.jobs.renovate.uses, baselineUses);
+  assert.equal(coordinator.jobs.renovate.if, "github.event_name != 'workflow_dispatch' || !inputs.canary_only");
+  assert.deepEqual(coordinator.on.workflow_dispatch.inputs.canary_only,
+    { description: 'Run only the renovate-config companion canary', required: false, default: false, type: 'boolean' });
   assert.deepEqual(coordinator.permissions, { contents: 'read' });
   assert.equal(coordinator.concurrency['cancel-in-progress'], false);
   assert.notEqual(coordinator.concurrency.group, workflow.jobs.renovate.concurrency.group);
@@ -112,16 +126,16 @@ test('released W/C pairing pins the public matrix and gated private callers', ()
     assert.deepEqual(caller.on.repository_dispatch.types, ['package-released']);
     assert.equal(caller.concurrency['cancel-in-progress'], false);
     assert.equal(caller.jobs.renovate.if, "vars.PIN_COURIER_ENABLED == 'true' && github.event.repository.private == true");
-    assert.equal(caller.jobs.renovate.uses, expectedUses);
+    assert.equal(caller.jobs.renovate.uses, baselineUses);
     assert.deepEqual(caller.jobs.renovate.with, { target });
     assert.deepEqual(caller.jobs.renovate.secrets, coordinator.jobs.renovate.secrets);
-    assert.match(yaml, new RegExp(`# v${pairing.version.replaceAll('.', '\\.')}`));
+    assert.match(yaml, /# v1\.0\.0/);
   }
   for (const target of PRIVATE_TARGETS) {
     const job = coordinator.jobs[`forward-${target.split('/')[1]}`];
     assert.equal(job.needs, undefined);
     assert.equal(job.if, "github.event_name == 'repository_dispatch' && github.event.action == 'package-released'");
-    assert.equal(job.steps[0].with.ref, pairing.configurationCommit);
+    assert.equal(job.steps[0].with.ref, baselineConfiguration);
     assert.equal(job.steps[0].with.repository, 'JFusco/renovate-config');
     assert.equal(job.steps[0].with['persist-credentials'], false);
     const token = job.steps.find(step => step.id === 'token');
@@ -133,5 +147,24 @@ test('released W/C pairing pins the public matrix and gated private callers', ()
     assert.equal(job.steps.at(-1).env.DISPATCH_DESTINATION, target);
     assert.equal(job.steps.at(-1).run, 'node pin-courier-config/scripts/forward-release.cjs');
     assert.equal(JSON.stringify(job).includes('client_payload'), false);
+  }
+});
+
+test('canary pins resolve to reviewed immutable commits and only self is admitted', () => {
+  const pairing = JSON.parse(fs.readFileSync(path.join(root, 'workflow-release.json')));
+  const show = file => {
+    const result = spawnSync('git', ['show', file], { cwd: root, encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+    return result.stdout;
+  };
+  const policy = JSON.parse(show(`${pairing.configurationCommit}:companion-issues.json`));
+  assert.deepEqual(Object.keys(policy.targets), ['JFusco/renovate-config']);
+  assert.ok(Number.isFinite(Date.parse(policy.targets['JFusco/renovate-config'].startedAt)));
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root, 'companion-issues.json'))), policy);
+  assert.deepEqual(parse(show(`${pairing.workflowCommit}:.github/workflows/renovate-run.yml`)), workflow);
+  assert.deepEqual(JSON.parse(show(`${pairing.workflowCommit}:workflow-configuration.json`)), release);
+  for (const [ancestor, descendant] of [[pairing.configurationCommit, pairing.workflowCommit], [pairing.workflowCommit, 'HEAD']]) {
+    const result = spawnSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], { cwd: root });
+    assert.equal(result.status, 0, 'C, W and caller promotion must preserve their reviewed ancestry');
   }
 });

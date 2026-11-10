@@ -1,5 +1,10 @@
 # Pin Courier maintenance
 
+The [companion-issue rollout plan](COMPANION-ROLLOUT.md) admits only
+`JFusco/renovate-config` for the authorized self-canary. All other companion
+targets remain inactive. Manual verification uses `canary_only=true` so it
+does not launch unrelated scans. Expansion requires separate approval.
+
 Shared Renovate presets and a fixed GitHub App runner for eight repositories.
 Renovate proposes routine updates; Dependabot initially produces eligible
 alert-driven security repairs. Joe and repository maintainers operate this system.
