@@ -1,5 +1,8 @@
 # Pin Courier maintenance
 
+The inactive [companion-issue implementation and rollout plan](COMPANION-ROLLOUT.md)
+requires separate activation approval. Migrator remains independent of Office.
+
 Shared Renovate presets and a fixed GitHub App runner for eight repositories.
 Renovate proposes routine updates; Dependabot initially produces eligible
 alert-driven security repairs. Joe and repository maintainers operate this system.
