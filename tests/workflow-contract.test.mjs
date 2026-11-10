@@ -53,7 +53,7 @@ test('caller validation precedes token creation; grants and engine remain explic
     'permission-administration': 'read', 'permission-vulnerability-alerts': 'read',
   });
   const action = job.steps.find(step => step.name === 'Run pinned Renovate');
-  assert.equal(action.uses, 'renovatebot/github-action@2804199d260ad00c1fae0e9e842888369391c776');
+  assert.equal(action.uses, 'renovatebot/github-action@1c0cf989c02653fba0efe7ca5772338860ca71dc');
   assert.equal(action.with.configurationFile, 'pin-courier-config/runner.generated.json');
   assert.equal(release.renovateVersion, '44.190.0');
   assert.equal(action.with['renovate-version'], release.renovateVersion);
