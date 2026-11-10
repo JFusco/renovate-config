@@ -97,3 +97,10 @@ jobs:
           renovate-version: 44.190.0
         env:
           LOG_LEVEL: info
+      - name: Reconcile companion issues
+        if: ${{ !cancelled() && steps.token.outcome == 'success' && vars.PIN_COURIER_COMPANIONS_ENABLED == 'true' }}
+        env:
+          INPUT_TARGET: ${{ inputs.target }}
+          CALLER_PRIVATE: ${{ github.event.repository.private }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: node pin-courier-config/scripts/run-companion-issues.cjs

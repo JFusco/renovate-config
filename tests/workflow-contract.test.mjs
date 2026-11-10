@@ -52,12 +52,18 @@ test('caller validation precedes token creation; grants and engine remain explic
     'permission-workflows': 'write', 'permission-statuses': 'write', 'permission-checks': 'read',
     'permission-administration': 'read', 'permission-vulnerability-alerts': 'read',
   });
-  const action = job.steps.at(-1);
+  const action = job.steps.find(step => step.name === 'Run pinned Renovate');
   assert.equal(action.uses, 'renovatebot/github-action@2804199d260ad00c1fae0e9e842888369391c776');
   assert.equal(action.with.configurationFile, 'pin-courier-config/runner.generated.json');
   assert.equal(release.renovateVersion, '44.190.0');
   assert.equal(action.with['renovate-version'], release.renovateVersion);
   assert.equal(JSON.stringify(action).includes('PRIVATE_KEY'), false);
+  const companion = job.steps.at(-1);
+  assert.equal(companion.name, 'Reconcile companion issues');
+  assert.equal(companion.run, 'node pin-courier-config/scripts/run-companion-issues.cjs');
+  assert.equal(companion.if, "${{ !cancelled() && steps.token.outcome == 'success' && vars.PIN_COURIER_COMPANIONS_ENABLED == 'true' }}");
+  assert.deepEqual(companion.env, { INPUT_TARGET: '${{ inputs.target }}', CALLER_PRIVATE: '${{ github.event.repository.private }}',
+    GH_TOKEN: '${{ steps.token.outputs.token }}' });
 });
 
 test('actual admission program stays paused by default and accepts only fixed public targets', () => {
