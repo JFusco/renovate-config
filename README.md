@@ -266,8 +266,11 @@ only; preserve immutable published versions/tags/releases.
 
 ## Maintenance and workflow releases
 
-Retain Renovate **44.190.0**, renovatebot/github-action **46.3.10**, and
-create-github-app-token **3.3.0** initially. Engine upgrades are deliberate.
+The reusable workflow source pins Renovate **44.190.0**,
+renovatebot/github-action **46.3.12**, and create-github-app-token **3.3.0**.
+The action patch propagates failed Docker commands as errors; its input interface
+is unchanged. Published workflow SHAs remain immutable: merging a source update
+does not promote existing callers to a new workflow release. Engine upgrades are deliberate.
 Validation is secret-free on PRs and main pushes, requires native RE2, resolves
 candidate shared presets rather than old main, uses strict no-global repository
 validation, and validates runner/generated profiles separately as globals.
