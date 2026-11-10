@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0-canary.1",
-  "workflowCommit": "bd04a7d47ba9c0f7930d6ab021afabb3e6e6b681",
+  "version": "1.1.0-canary.2",
+  "workflowCommit": "ac4a1f4ec9afb982f9888f6769842c6e3eb1d202",
   "configurationCommit": "e1794e6f3dce2ebb78713d6bbc0068da4f0813ce",
   "renovateVersion": "44.190.0"
 }

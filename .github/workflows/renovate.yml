@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   canary:
-    uses: JFusco/renovate-config/.github/workflows/renovate-run.yml@bd04a7d47ba9c0f7930d6ab021afabb3e6e6b681 # v1.1.0-canary.1
+    uses: JFusco/renovate-config/.github/workflows/renovate-run.yml@ac4a1f4ec9afb982f9888f6769842c6e3eb1d202 # v1.1.0-canary.2
     with:
       target: JFusco/renovate-config
     secrets:
