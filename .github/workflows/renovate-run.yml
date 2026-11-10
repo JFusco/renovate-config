@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: JFusco/renovate-config
-          ref: 9c1895a7fe84e2de36b2a409eaae04071b9dff0b
+          ref: e1794e6f3dce2ebb78713d6bbc0068da4f0813ce
           path: pin-courier-config
           persist-credentials: false
       - name: Validate fixed caller and target before credentials
@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: JFusco/renovate-config
-          ref: 9c1895a7fe84e2de36b2a409eaae04071b9dff0b
+          ref: e1794e6f3dce2ebb78713d6bbc0068da4f0813ce
           path: pin-courier-config
           persist-credentials: false
       - name: Generate the trusted single-repository profile
