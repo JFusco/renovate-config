@@ -122,7 +122,7 @@ test('self-canary W/C pairing leaves every other caller on its existing release'
   for (const [target, yaml] of Object.entries(callers)) {
     const caller = parse(yaml);
     assert.deepEqual(caller.permissions, { contents: 'read' });
-    assert.deepEqual(caller.on.schedule, coordinator.on.schedule);
+    assert.deepEqual(caller.on.schedule, [{ cron: '23 6 * * *' }]);
     assert.deepEqual(caller.on.repository_dispatch.types, ['package-released']);
     assert.equal(caller.concurrency['cancel-in-progress'], false);
     assert.equal(caller.jobs.renovate.if, "vars.PIN_COURIER_ENABLED == 'true' && github.event.repository.private == true");

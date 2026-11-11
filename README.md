@@ -117,8 +117,9 @@ public matrix remains explicit; invalid caller/target combinations still fail
 before admission is considered. Private admission uses only its caller's
 PIN_COURIER_ENABLED gate.
 
-Central and private callers retain `23 */6 * * *`, workflow_dispatch and
-`package-released`. Coordinator concurrency and per-target runner concurrency
+The central coordinator retains `23 */6 * * *`; private callers use the daily
+fallback `23 6 * * *` (06:23 UTC; 01:23 EST / 02:23 EDT). All retain
+workflow_dispatch and `package-released`. Coordinator concurrency and per-target runner concurrency
 use distinct non-cancelling groups. GitHub may coalesce pending notifications.
 Central forwarding jobs independently submit notifications to the two fixed
 private endpoints, each with a destination-scoped contents-write token. Only
@@ -335,7 +336,8 @@ A separately validated security-producer rollback first disables Renovate
 vulnerability production before restoring Dependabot production.
 
 Owners investigate thirty minutes after an accepted first-party dispatch without
-propagation, fourteen hours without a successful target scan, or two working
+propagation, fourteen hours without a successful public target scan,
+thirty-eight hours without a successful private target scan, or two working
 days with an unresolved update PR. These are runbook thresholds using existing
 Actions notifications, dashboards and issues, not new monitors or guarantees.
 Distinguish submission, scan, PR creation, current-head checks, merge, publication
