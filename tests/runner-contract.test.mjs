@@ -9,7 +9,15 @@ const base = JSON.parse(fs.readFileSync(new URL('../runner.json', import.meta.ur
 const context = target => ({ caller: 'JFusco/renovate-config', ref: 'refs/heads/main', target, privateRepository: false });
 
 test('public coordinator maps exactly seven targets to scoped single-repository profiles', () => {
-  assert.equal(PUBLIC_TARGETS.length, 7);
+  assert.deepEqual([...PUBLIC_TARGETS].sort(), [
+    'JFusco/renovate-config',
+    'JFusco/ui-design-brain',
+    'JFusco/cms-field-vocabulary',
+    'JFusco/brain',
+    'JFusco/design-passport',
+    'JFusco/the-office',
+    'JFusco/accessibility-standards',
+  ].sort());
   for (const target of PUBLIC_TARGETS) {
     const result = validateTarget(context(target));
     assert.equal(`${result.owner}/${result.repository}`, target);

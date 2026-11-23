@@ -67,22 +67,29 @@ test('caller validation precedes token creation; grants and engine remain explic
 });
 
 test('actual admission program stays paused by default and accepts only fixed public targets', () => {
-  const run = workflow.jobs.validate.steps.find(step => step.id === 'admission').run;
+  const { env, run } = workflow.jobs.validate.steps.find(step => step.id === 'admission');
+  assert.equal(env.PUBLIC_TARGETS_JSON,
+    "${{ (inputs.target == 'JFusco/accessibility-standards' && vars.PIN_COURIER_ACCESSIBILITY_TARGETS) || vars.PIN_COURIER_PUBLIC_TARGETS || '[]' }}");
   const script = run.match(/^node <<'JS'\n([\s\S]*)\nJS\n?$/)[1];
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pin-courier-admission-'));
   try {
     fs.symlinkSync(root, path.join(temp, 'pin-courier-config'), 'dir');
-    for (const [caller, targets, flag, expected] of [
-      ['JFusco/renovate-config', '[]', '', false],
-      ['JFusco/renovate-config', '["JFusco/brain"]', '', true],
-      ['JFusco/renovate-config', '["verndale/migrator"]', '', null],
-      ['JFusco/renovate-config', '{}', '', null],
-      ['verndale/migrator', '[]', '', false],
-      ['verndale/migrator', '[]', 'true', true],
+    const sharedTargets = '["JFusco/brain"]';
+    for (const [caller, target, targets, flag, expected] of [
+      ['JFusco/renovate-config', 'JFusco/brain', '[]', '', false],
+      ['JFusco/renovate-config', 'JFusco/brain', sharedTargets, '', true],
+      ['JFusco/renovate-config', 'JFusco/accessibility-standards', '["JFusco/accessibility-standards"]', '', true],
+      ['JFusco/renovate-config', 'JFusco/accessibility-standards', '[]', '', false],
+      // An unset dedicated variable falls back to the legacy-only shared list.
+      ['JFusco/renovate-config', 'JFusco/accessibility-standards', sharedTargets, '', false],
+      ['JFusco/renovate-config', 'JFusco/brain', '["verndale/migrator"]', '', null],
+      ['JFusco/renovate-config', 'JFusco/brain', '{}', '', null],
+      ['verndale/migrator', 'verndale/migrator', '[]', '', false],
+      ['verndale/migrator', 'verndale/migrator', '[]', 'true', true],
     ]) {
       const output = path.join(temp, 'output'); fs.writeFileSync(output, '');
       const result = spawnSync(process.execPath, ['-e', script], { cwd: temp, encoding: 'utf8', env: {
-        PATH: process.env.PATH, GITHUB_REPOSITORY: caller, INPUT_TARGET: 'JFusco/brain', PUBLIC_TARGETS_JSON: targets,
+        PATH: process.env.PATH, GITHUB_REPOSITORY: caller, INPUT_TARGET: target, PUBLIC_TARGETS_JSON: targets,
         PRIVATE_ENABLED: flag, GITHUB_OUTPUT: output,
       } });
       assert.equal(result.status === 0, expected !== null);
@@ -105,6 +112,8 @@ test('self-canary W/C pairing leaves every other caller on its existing release'
   assert.equal(coordinator.jobs.canary.uses, expectedUses);
   assert.equal(coordinator.jobs.accessibility.uses, expectedUses);
   assert.deepEqual(coordinator.jobs.accessibility.with, { target: 'JFusco/accessibility-standards' });
+  assert.equal(coordinator.jobs.accessibility.if, coordinator.jobs.renovate.if);
+  assert.deepEqual(coordinator.jobs.accessibility.secrets, coordinator.jobs.renovate.secrets);
   assert.deepEqual(coordinator.jobs.canary.with, { target: 'JFusco/renovate-config' });
   assert.deepEqual(coordinator.jobs.canary.secrets, coordinator.jobs.renovate.secrets);
   assert.deepEqual(coordinator.jobs.renovate.with, { target: '${{ matrix.target }}' });

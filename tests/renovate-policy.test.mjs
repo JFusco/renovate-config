@@ -101,6 +101,8 @@ test('legacy default remains an independent npm-only first-party allowlist', asy
 test('declared consumer samples preserve owned coverage and exclusions', async () => {
   const fixtures = read('tests/fixtures/consumers.json');
   assert.deepEqual(read('renovate.json'), fixtures['renovate-config']);
+  assert.deepEqual(fixtures['accessibility-standards']?.extends,
+    ['github>JFusco/renovate-config:maintenance'], 'Accessibility Standards publisher preset');
   for (const [name, config] of Object.entries(fixtures)) {
     const resolved = await resolveCandidate(config);
     assert.equal(resolved.automerge, false, name);
