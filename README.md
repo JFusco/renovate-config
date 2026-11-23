@@ -147,7 +147,7 @@ is introduced.
 The existing App is `pin-courier`, client ID `Iv23liCFdR4MIQUP6BZg`.
 Repository Actions secrets are `RENOVATE_APP_CLIENT_ID` and
 `RENOVATE_APP_PRIVATE_KEY`. Approved holders are JFusco/renovate-config,
-JFusco/ui-design-brain, JFusco/cms-field-vocabulary, verndale/migrator and
+JFusco/ui-design-brain, JFusco/cms-field-vocabulary, JFusco/accessibility-standards, verndale/migrator and
 verndale/ai-orchestration; the latter two are provisioned only after the access
 inventory. Do not add an unrestricted organization secret.
 
@@ -165,7 +165,7 @@ key. Never copy key material into logs, evidence, commits or review packets.
 ## Trust boundaries
 
 The user selected private callers and accepted shared App-key custody. Approved
-repository Actions-secret holders are renovate-config, the two JFusco publishers,
+repository Actions-secret holders are renovate-config, the three JFusco publishers,
 and only verndale/migrator and verndale/ai-orchestration for private execution.
 Do not provision an unrestricted organization secret.
 
@@ -173,7 +173,7 @@ Administrators and people able to modify secret-consuming workflows in **any**
 holder can cause key extraction. An extracted key can mint tokens across the
 App's granted installations, including the JFusco publishers. The known JFusco
 set is renovate-config, ui-design-brain, cms-field-vocabulary, design-passport
-and brain, plus the-office when enrolled. Actual grants determine access and
+and brain, plus the-office and accessibility-standards when enrolled. Actual grants determine access and
 include documented contents/workflow writes capable of changing publisher
 release workflows. Inventory any additional installed repositories before
 rollout. Narrow repository-scoped tokens do not constrain the authority of the
