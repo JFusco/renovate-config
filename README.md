@@ -5,7 +5,7 @@ The [companion-issue rollout plan](COMPANION-ROLLOUT.md) admits only
 targets remain inactive. Manual verification uses `canary_only=true` so it
 does not launch unrelated scans. Expansion requires separate approval.
 
-Shared Renovate presets and a fixed GitHub App runner for eight repositories.
+Shared Renovate presets and a fixed GitHub App runner for nine repositories.
 Renovate proposes routine updates; Dependabot initially produces eligible
 alert-driven security repairs. Joe and repository maintainers operate this system.
 Branch protection remains deferred. Configuration and passing fixture checks are
@@ -16,6 +16,7 @@ not live delivery or vulnerability-closure evidence.
 | Repository | Preset and owned surfaces | Merge owner |
 | --- | --- | --- |
 | JFusco/ui-design-brain | maintenance; root package/lock and Actions | Maintainer |
+| JFusco/accessibility-standards | maintenance; npm publisher and Actions | Office |
 | JFusco/cms-field-vocabulary | maintenance; owned npm manifests/locks and Actions | Office |
 | JFusco/brain | standard; root package/lock and independent web/brain package/lock | Office |
 | JFusco/design-passport | standard; npm root/workspace lock and companion package; retain catalog sync | Maintainer |
@@ -345,3 +346,7 @@ and alert closure. Public commits contain reviewed instructions only; detailed
 private alerts, run/job identifiers, Office receipts, credentials and operational
 state stay local or in their relevant private repository. Keep
 `docs/audits/2026-11-08-pin-courier/` outside every public staged set.
+
+## Accessibility Standards publisher
+
+The public publisher sends the accessibility-standards-released event. Public consumers scan on release and private forwarding jobs accept only their existing package-released event. Set PIN_COURIER_ACCESSIBILITY_TARGETS to a JSON array containing only JFusco/accessibility-standards to admit the new target. Keep the existing public admission list compatible with its older immutable runner. Office owns dependency merges and tracking issues. The publisher requests a destination-scoped contents-write token solely for the release notification.

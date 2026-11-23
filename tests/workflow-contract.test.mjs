@@ -101,12 +101,14 @@ test('self-canary W/C pairing leaves every other caller on its existing release'
   const baselineConfiguration = '9c1895a7fe84e2de36b2a409eaae04071b9dff0b';
   const coordinator = parse(fs.readFileSync(path.join(root, '.github/workflows/renovate.yml'), 'utf8'));
   const { PUBLIC_TARGETS, PRIVATE_TARGETS } = createRequire(import.meta.url)('../scripts/runner-profile.cjs');
-  assert.deepEqual(Object.keys(coordinator.jobs), ['canary', 'renovate', 'forward-migrator', 'forward-ai-orchestration']);
+  assert.deepEqual(Object.keys(coordinator.jobs), ['canary', 'accessibility', 'renovate', 'forward-migrator', 'forward-ai-orchestration']);
   assert.equal(coordinator.jobs.canary.uses, expectedUses);
+  assert.equal(coordinator.jobs.accessibility.uses, expectedUses);
+  assert.deepEqual(coordinator.jobs.accessibility.with, { target: 'JFusco/accessibility-standards' });
   assert.deepEqual(coordinator.jobs.canary.with, { target: 'JFusco/renovate-config' });
   assert.deepEqual(coordinator.jobs.canary.secrets, coordinator.jobs.renovate.secrets);
   assert.deepEqual(coordinator.jobs.renovate.with, { target: '${{ matrix.target }}' });
-  assert.deepEqual(coordinator.jobs.renovate.strategy.matrix.target, PUBLIC_TARGETS.filter(target => target !== 'JFusco/renovate-config'));
+  assert.deepEqual(coordinator.jobs.renovate.strategy.matrix.target, PUBLIC_TARGETS.filter(target => !['JFusco/renovate-config', 'JFusco/accessibility-standards'].includes(target)));
   assert.equal(coordinator.jobs.renovate.strategy['fail-fast'], false);
   assert.equal(coordinator.jobs.renovate.uses, baselineUses);
   assert.equal(coordinator.jobs.renovate.if, "github.event_name != 'workflow_dispatch' || !inputs.canary_only");
@@ -116,7 +118,7 @@ test('self-canary W/C pairing leaves every other caller on its existing release'
   assert.equal(coordinator.concurrency['cancel-in-progress'], false);
   assert.notEqual(coordinator.concurrency.group, workflow.jobs.renovate.concurrency.group);
   assert.deepEqual(coordinator.on.schedule, [{ cron: '23 */6 * * *' }]);
-  assert.deepEqual(coordinator.on.repository_dispatch.types, ['package-released']);
+  assert.deepEqual(coordinator.on.repository_dispatch.types, ['package-released', 'accessibility-standards-released']);
   const callers = JSON.parse(fs.readFileSync(path.join(root, 'tests/fixtures/private-callers.json')));
   assert.deepEqual(Object.keys(callers), PRIVATE_TARGETS);
   for (const [target, yaml] of Object.entries(callers)) {
