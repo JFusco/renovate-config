@@ -8,8 +8,8 @@ const { forwardedPayload } = require('../scripts/forward-release.cjs');
 const base = JSON.parse(fs.readFileSync(new URL('../runner.json', import.meta.url)));
 const context = target => ({ caller: 'JFusco/renovate-config', ref: 'refs/heads/main', target, privateRepository: false });
 
-test('public coordinator maps exactly six targets to scoped single-repository profiles', () => {
-  assert.equal(PUBLIC_TARGETS.length, 6);
+test('public coordinator maps exactly seven targets to scoped single-repository profiles', () => {
+  assert.equal(PUBLIC_TARGETS.length, 7);
   for (const target of PUBLIC_TARGETS) {
     const result = validateTarget(context(target));
     assert.equal(`${result.owner}/${result.repository}`, target);

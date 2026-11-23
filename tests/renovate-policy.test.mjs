@@ -15,7 +15,7 @@ async function effective(base, depName, updateType, manager = 'npm') {
 }
 
 test('first-party majors and patches bypass delays within the same ten-slot capacity', async () => {
-  for (const name of ['cms-field-vocabulary', 'ui-design-brain', '@verndale/ui-design-brain']) {
+  for (const name of ['accessibility-standards', 'cms-field-vocabulary', 'ui-design-brain', '@verndale/ui-design-brain']) {
     for (const type of ['major', 'patch']) {
       const rule = await effective(standard, name, type);
       assert.deepEqual(rule.schedule, []);
