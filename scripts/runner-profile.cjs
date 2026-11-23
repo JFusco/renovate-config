@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const PUBLIC_TARGETS = Object.freeze(['JFusco/renovate-config', 'JFusco/ui-design-brain',
-  'JFusco/cms-field-vocabulary', 'JFusco/brain', 'JFusco/design-passport', 'JFusco/the-office']);
+  'JFusco/cms-field-vocabulary', 'JFusco/brain', 'JFusco/design-passport', 'JFusco/the-office', 'JFusco/accessibility-standards']);
 const PRIVATE_TARGETS = Object.freeze(['verndale/migrator', 'verndale/ai-orchestration']);
 const CATALOG_COMMANDS = Object.freeze(['^pnpm install --frozen-lockfile --ignore-scripts$', '^pnpm catalog:sync$']);
 

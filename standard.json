@@ -107,6 +107,7 @@
         "npm"
       ],
       "matchPackageNames": [
+        "accessibility-standards",
         "cms-field-vocabulary",
         "ui-design-brain",
         "@verndale/ui-design-brain"

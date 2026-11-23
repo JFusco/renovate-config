@@ -175,5 +175,17 @@
     "enabledManagers": [
       "github-actions"
     ]
+  },
+  "accessibility-standards": {
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+      "github>JFusco/renovate-config:maintenance"
+    ],
+    "lockFileMaintenance": {
+      "enabled": true,
+      "schedule": [
+        "* * * * 1"
+      ]
+    }
   }
 }

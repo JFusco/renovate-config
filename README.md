@@ -5,7 +5,7 @@ The [companion-issue rollout plan](COMPANION-ROLLOUT.md) admits only
 targets remain inactive. Manual verification uses `canary_only=true` so it
 does not launch unrelated scans. Expansion requires separate approval.
 
-Shared Renovate presets and a fixed GitHub App runner for eight repositories.
+Shared Renovate presets and a fixed GitHub App runner for nine repositories.
 Renovate proposes routine updates; Dependabot initially produces eligible
 alert-driven security repairs. Joe and repository maintainers operate this system.
 Branch protection remains deferred. Configuration and passing fixture checks are
@@ -16,6 +16,7 @@ not live delivery or vulnerability-closure evidence.
 | Repository | Preset and owned surfaces | Merge owner |
 | --- | --- | --- |
 | JFusco/ui-design-brain | maintenance; root package/lock and Actions | Maintainer |
+| JFusco/accessibility-standards | maintenance; npm publisher and Actions | Office |
 | JFusco/cms-field-vocabulary | maintenance; owned npm manifests/locks and Actions | Office |
 | JFusco/brain | standard; root package/lock and independent web/brain package/lock | Office |
 | JFusco/design-passport | standard; npm root/workspace lock and companion package; retain catalog sync | Maintainer |
@@ -67,7 +68,7 @@ seven-day age claim. Rollbacks/replacements stay separate for explicit review.
 Routine third-party majors stay ungrouped and require Dependency Dashboard
 approval, with Monday and age requirements retained.
 
-Last, npm `cms-field-vocabulary`, `ui-design-brain` and
+Last, npm `accessibility-standards`, `cms-field-vocabulary`, `ui-design-brain` and
 `@verndale/ui-design-brain` override schedule to empty, age to null, dashboard
 approval to false and group to null, with higher PR priority. Exact pins stay
 exact; newer releases reuse existing package PRs. Immediacy means eligibility on
@@ -86,7 +87,7 @@ and an appropriate unmarked commit. Never use `[skip ci]` for maintenance.
 
 The reviewed reusable `renovate-run.yml` accepts exactly one string input,
 `target`, and the two explicitly named App secrets. The central coordinator
-selects only its six fixed JFusco targets. Each private Verndale caller selects
+selects only its seven fixed JFusco targets. Each private Verndale caller selects
 only itself, must remain private, and is gated by
 `vars.PIN_COURIER_ENABLED == 'true'`, initially unset. Execution must be on main.
 Release dispatch payloads cannot select repositories, refs, commands or flags.
@@ -109,9 +110,11 @@ never inherit every App grant as a workaround. Normal job-end revocation stays
 on. The raw App key is passed only to the token action, never Renovate or catalog
 commands. [Pinned token inputs](https://raw.githubusercontent.com/actions/create-github-app-token/64ab729a6294000f5aa4a4bc0b73d1f32bc45510/action.yml).
 
-Public admission starts empty. Administrators add fixed public target names to
-`PIN_COURIER_PUBLIC_TARGETS`, a JSON array, beginning with
-`["JFusco/renovate-config"]` and then adding the next approved canary in order.
+Public admission starts empty. Keep the `PIN_COURIER_PUBLIC_TARGETS` JSON array
+limited to fixed public targets recognized by the v1.0.0 runner. Begin with
+`["JFusco/renovate-config"]` and then add the next approved canary in order.
+To enroll Accessibility Standards, set `PIN_COURIER_ACCESSIBILITY_TARGETS` to
+`["JFusco/accessibility-standards"]`.
 Unlisted targets validate but mint no token and perform no scan. The complete
 public matrix remains explicit; invalid caller/target combinations still fail
 before admission is considered. Private admission uses only its caller's
@@ -131,9 +134,10 @@ fallback; private processing stays in private repositories.
 
 ## Merge ownership
 
-Office is the sole dependency-merge owner for Brain and CMS, including retained
-Dependabot PRs. Joe or a maintainer places a Dependabot PR card in Ready; Office
-uses its existing board pickup, qualification, review and merge path. Do not add
+Office is the sole dependency-merge owner for Brain, CMS and
+`JFusco/accessibility-standards`, including retained Dependabot PRs.
+Joe or a maintainer places a Dependabot PR card in Ready; Office uses its
+existing board pickup, qualification, review and merge path. Do not add
 Dependabot to Pin Courier/wiki-sync automatic adoption. Retain numeric Pin
 Courier identity 351979519, verified bot commits, same-repository/main/non-draft
 qualification, current-head review/checks, holds, expected-SHA merging, durable
@@ -146,7 +150,7 @@ is introduced.
 The existing App is `pin-courier`, client ID `Iv23liCFdR4MIQUP6BZg`.
 Repository Actions secrets are `RENOVATE_APP_CLIENT_ID` and
 `RENOVATE_APP_PRIVATE_KEY`. Approved holders are JFusco/renovate-config,
-JFusco/ui-design-brain, JFusco/cms-field-vocabulary, verndale/migrator and
+JFusco/ui-design-brain, JFusco/cms-field-vocabulary, JFusco/accessibility-standards, verndale/migrator and
 verndale/ai-orchestration; the latter two are provisioned only after the access
 inventory. Do not add an unrestricted organization secret.
 
@@ -164,7 +168,7 @@ key. Never copy key material into logs, evidence, commits or review packets.
 ## Trust boundaries
 
 The user selected private callers and accepted shared App-key custody. Approved
-repository Actions-secret holders are renovate-config, the two JFusco publishers,
+repository Actions-secret holders are renovate-config, the three JFusco publishers,
 and only verndale/migrator and verndale/ai-orchestration for private execution.
 Do not provision an unrestricted organization secret.
 
@@ -172,7 +176,7 @@ Administrators and people able to modify secret-consuming workflows in **any**
 holder can cause key extraction. An extracted key can mint tokens across the
 App's granted installations, including the JFusco publishers. The known JFusco
 set is renovate-config, ui-design-brain, cms-field-vocabulary, design-passport
-and brain, plus the-office when enrolled. Actual grants determine access and
+and brain, plus the-office and accessibility-standards when enrolled. Actual grants determine access and
 include documented contents/workflow writes capable of changing publisher
 release workflows. Inventory any additional installed repositories before
 rollout. Narrow repository-scoped tokens do not constrain the authority of the
@@ -202,7 +206,7 @@ Every other generated execution profile has empty allowedCommands.
 
 ## Security production
 
-Dependabot is the initial alert-driven producer in all eight repositories.
+Dependabot is the initial alert-driven producer in all nine repositories.
 Renovate vulnerabilityAlerts.enabled and osvVulnerabilityAlerts are false in
 every adopted configuration. The disabled vulnerability configuration remains
 testable for a later approved transition: no grouping, schedule, age or dashboard
@@ -216,7 +220,7 @@ Dependabot YAML uses weekly npm/Actions entries, zero version-update PRs and
 generated message before accepting a security-maintenance merge. Hold and
 regenerate older unmarked PRs. Preserve enabled detection and security updates
 in UI, Migrator and ai-orchestration; enable missing feeds/settings in the other
-five during gated rollout. Maintainers own excluded/unsupported repairs.
+six during gated rollout. Maintainers own excluded/unsupported repairs.
 
 Refresh alert inventories after detection is enabled; trace repairs through
 parents and actual package-manager resolution. Track unsupported fixes with
@@ -246,14 +250,22 @@ metadata is publisher, package, version, revision and release_url, derived from
 the published release. Payloads are data, never shell or execution configuration.
 Legacy events without client_payload remain valid.
 
-Notification-only replay, with authorized dispatch credentials:
+Use authorized dispatch credentials for notification-only replay. Replay an
+Accessibility Standards notification to trigger public scans only.
+
+```sh
+gh api --method POST repos/JFusco/renovate-config/dispatches -f event_type=accessibility-standards-released
+```
+
+Use `package-released` to replay a release that triggers public scans and private
+forwarding.
 
 ```sh
 gh api --method POST repos/JFusco/renovate-config/dispatches -f event_type=package-released
 ```
 
-This scans public targets and forwards notifications without invoking a publisher.
-Private-only retries use:
+Both commands replay the notification without invoking a publisher. For
+private-only retries, run the relevant caller workflow directly.
 
 ```sh
 gh workflow run renovate.yml -R verndale/migrator --ref main
@@ -328,9 +340,10 @@ good private W/C pairing or leave Renovate paused with Dependabot and maintainer
 handling; never restore public private-repository scans or owner-wide discovery.
 Restore incompatible manifests/locks together and preserve pair bindings and
 generated outputs together. Keep detection enabled and record reopened exposure.
-Before reverting suppression, hold publisher maintenance through Office (CMS) or
-maintainer review (UI); reverify suppression, commit metadata and ordinary release
-controls before resuming. Preserve Office as Brain/CMS sole owner and use holds.
+Before reverting suppression, hold publisher maintenance through the Office for CMS Field Vocabulary and Accessibility Standards, or through
+maintainer review for UI Design Brain. Verify suppression, commit metadata and release
+controls before resuming. The Office owns dependency merges for Brain, CMS Field
+Vocabulary and Accessibility Standards and applies project holds.
 Reconcile branches, PR heads and uncertain effects before restarting any producer.
 A separately validated security-producer rollback first disables Renovate
 vulnerability production before restoring Dependabot production.
@@ -345,3 +358,7 @@ and alert closure. Public commits contain reviewed instructions only; detailed
 private alerts, run/job identifiers, Office receipts, credentials and operational
 state stay local or in their relevant private repository. Keep
 `docs/audits/2026-11-08-pin-courier/` outside every public staged set.
+
+## Accessibility Standards publisher
+
+The public publisher sends the accessibility-standards-released event. Public consumers scan on release and private forwarding jobs accept only their existing package-released event. Set PIN_COURIER_ACCESSIBILITY_TARGETS to a JSON array containing only JFusco/accessibility-standards to admit the new target. Keep the existing public admission list compatible with its older immutable runner. Office owns dependency merges and tracking issues. The publisher requests a destination-scoped contents-write token solely for the release notification.

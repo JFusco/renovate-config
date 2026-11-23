@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: JFusco/renovate-config
-          ref: e1794e6f3dce2ebb78713d6bbc0068da4f0813ce
+          ref: 328617e2b39bb8f6df89a43ab4610b3fc6dacaa3
           path: pin-courier-config
           persist-credentials: false
       - name: Validate fixed caller and target before credentials
@@ -38,7 +38,7 @@ jobs:
         id: admission
         env:
           INPUT_TARGET: ${{ inputs.target }}
-          PUBLIC_TARGETS_JSON: ${{ vars.PIN_COURIER_PUBLIC_TARGETS || '[]' }}
+          PUBLIC_TARGETS_JSON: ${{ (inputs.target == 'JFusco/accessibility-standards' && vars.PIN_COURIER_ACCESSIBILITY_TARGETS) || vars.PIN_COURIER_PUBLIC_TARGETS || '[]' }}
           PRIVATE_ENABLED: ${{ vars.PIN_COURIER_ENABLED }}
         run: |
           node <<'JS'
@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: JFusco/renovate-config
-          ref: e1794e6f3dce2ebb78713d6bbc0068da4f0813ce
+          ref: 328617e2b39bb8f6df89a43ab4610b3fc6dacaa3
           path: pin-courier-config
           persist-credentials: false
       - name: Generate the trusted single-repository profile

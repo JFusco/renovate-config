@@ -10,7 +10,7 @@ on:
         default: false
         type: boolean
   repository_dispatch:
-    types: [package-released]
+    types: [package-released, accessibility-standards-released]
 permissions:
   contents: read
 concurrency:
@@ -18,9 +18,17 @@ concurrency:
   cancel-in-progress: false
 jobs:
   canary:
-    uses: JFusco/renovate-config/.github/workflows/renovate-run.yml@ac4a1f4ec9afb982f9888f6769842c6e3eb1d202 # v1.1.0-canary.2
+    uses: JFusco/renovate-config/.github/workflows/renovate-run.yml@8e98ea380524e58494df73b1b2c80fc62c814b74 # v1.2.0
     with:
       target: JFusco/renovate-config
+    secrets:
+      RENOVATE_APP_CLIENT_ID: ${{ secrets.RENOVATE_APP_CLIENT_ID }}
+      RENOVATE_APP_PRIVATE_KEY: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+  accessibility:
+    if: github.event_name != 'workflow_dispatch' || !inputs.canary_only
+    uses: JFusco/renovate-config/.github/workflows/renovate-run.yml@8e98ea380524e58494df73b1b2c80fc62c814b74 # v1.2.0
+    with:
+      target: JFusco/accessibility-standards
     secrets:
       RENOVATE_APP_CLIENT_ID: ${{ secrets.RENOVATE_APP_CLIENT_ID }}
       RENOVATE_APP_PRIVATE_KEY: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
