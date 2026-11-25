@@ -75,7 +75,7 @@ jobs:
         run: node pin-courier-config/scripts/runner-profile.cjs
       - name: Mint scoped Pin Courier token
         id: token
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: ${{ secrets.RENOVATE_APP_CLIENT_ID }}
           private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
@@ -90,7 +90,7 @@ jobs:
           permission-administration: read
           permission-vulnerability-alerts: read
       - name: Run pinned Renovate
-        uses: renovatebot/github-action@1c0cf989c02653fba0efe7ca5772338860ca71dc # v46.3.12
+        uses: renovatebot/github-action@acdd6bda8b035c99ce59d5675816af2aa65a1774 # v46.3.14
         with:
           configurationFile: pin-courier-config/runner.generated.json
           token: ${{ steps.token.outputs.token }}
